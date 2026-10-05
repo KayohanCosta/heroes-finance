@@ -1,0 +1,3 @@
+import{test}from'node:test';import assert from'node:assert/strict';import{debtSchema,debtTotal,type Debt}from'../src/debts.js';
+test('total de dívidas em centavos e isolado por owner',()=>{const debts:Debt[]=[{id:'1',owner:'Kayohan',name:'A',description:'',value:.1},{id:'2',owner:'Kayohan',name:'B',description:'',value:.2},{id:'3',owner:'Arielle',name:'C',description:'',value:500}];assert.equal(debtTotal(debts,'Kayohan'),.3);assert.equal(debtTotal(debts,'Arielle'),500);assert.equal(debtTotal([],'Kayohan'),0);});
+test('dívida rejeita valores inválidos e nome vazio',()=>{for(const change of [{name:''},{value:0},{value:-1},{value:1.123}])assert.equal(debtSchema.safeParse({name:'Banco',description:'',value:10,...change}).success,false);});

@@ -1,0 +1,23 @@
+# Dados privados e credenciais
+.env
+.env.*
+!.env.example
+data/
+*.pem
+*.key
+*.p12
+*.pfx
+# Artefatos gerados e configuração local
+node_modules/
+dist/
+.runtime/
+.vercel/
+work/
+coverage/
+*.tsbuildinfo
+*.log
+*.bak
+*.backup
+*.zip
+.DS_Store
+Thumbs.db

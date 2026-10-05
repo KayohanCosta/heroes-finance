@@ -1,0 +1,30 @@
+{
+  "name": "heroes-finance",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "test": "tsx --test tests/*.test.ts",
+    "server": "tsx server/index.ts",
+    "account": "tsx server/account.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.57.4",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "express": "^5.1.0",
+    "dotenv": "^17.2.2",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
+    "tsx": "^4.20.5"
+  }
+}
