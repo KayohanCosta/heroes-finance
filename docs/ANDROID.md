@@ -24,7 +24,7 @@ A proteção é deste aparelho, não substitui a senha da conta. Ao abrir ou ret
 
 Selecione **Permitir lembretes** no Dashboard. No Android 13 ou posterior, aceite a permissão do sistema. Contas mensais, semanais e parcelas não pagas agendam lembretes para os próximos 60 dias. Cada data gera uma notificação genérica, sem credor, descrição, perfil ou valor na tela bloqueada. O horário previsto é 9h em America/Sao_Paulo. Não são solicitadas permissões de alarme exato: economia de bateria e políticas do fabricante podem atrasar a entrega.
 
-Abrir o Dashboard com os dados carregados recalcula e substitui a agenda. Pagamentos e exclusões se refletem após a atualização do Dashboard. Sair da conta ou perder a sessão cancela a agenda. Reiniciar o aparelho reprograma os lembretes futuros armazenados. O aplicativo não consulta o servidor em segundo plano: alterações feitas em outro aparelho precisam ser sincronizadas abrindo este APK. Não há promessa de lembretes após 60 dias sem abrir o aplicativo, após forçar sua parada ou negar notificações.
+Abrir o app com os dados carregados recalcula e substitui a agenda. Pagamentos e exclusões se refletem após a atualização dos dados. Sair da conta ou perder a sessão cancela a agenda. Reiniciar o aparelho reprograma os lembretes futuros armazenados. O aplicativo não consulta o servidor em segundo plano: alterações feitas em outro aparelho precisam ser sincronizadas abrindo este APK. Não há promessa de lembretes após 60 dias sem abrir o aplicativo, após forçar sua parada ou negar notificações.
 
 ## Segurança da ponte nativa
 
@@ -40,3 +40,8 @@ A ponte usa AndroidX WebKit `addWebMessageListener`, aceita somente a origem HTT
 - Testar perda de internet, teclado, calendário e botão Voltar.
 
 Essas verificações exigem um aparelho ou emulador Android e não são substituídas pelo build ou Lint.
+
+## Horários personalizados — versão 1.1.0
+
+O APK 1.1.0 adiciona lembretes pessoais com horário escolhido, conteúdo discreto e repetição. A sincronização funciona em qualquer aba. Instale a nova versão para receber esses avisos; o APK 1.0.0 continua limitado aos vencimentos às 9h. Veja [Lembretes programados](REMINDERS.md) para configuração de e-mail e limites da agenda local.
+

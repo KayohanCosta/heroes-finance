@@ -30,3 +30,10 @@ Este histórico descreve capacidades do código, não certifica deployment, upti
 - Configuração Vercel, migrations e exemplo de ambiente sem segredos.
 - Testes de domínio e integração local.
 - Documentação de arquitetura, API, banco, segurança e operação.
+# Lembretes programados — 1.1.0
+
+- Aba Lembretes, recorrência única/diária/semanal/mensal, edição, pausa e exclusão.
+- Propostas de lembretes pelo Heroes Agent com confirmação e owner controlado.
+- APK com horários personalizados, conteúdo discreto e agenda local de 60 dias.
+- Integração Resend, dispatcher Supabase Cron, fila com retries e idempotência.
+- E-mail sinalizado como pendente enquanto remetente e chave não estiverem configurados.

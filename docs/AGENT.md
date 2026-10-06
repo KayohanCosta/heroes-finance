@@ -51,3 +51,8 @@ A pergunta e resultados de ferramentas podem ser enviados ao provedor, incluindo
 Não confiar em texto do modelo como autorização ou como cálculo. A implementação exige valores financeiros das ferramentas, mas um LLM ainda pode redigir uma resposta incorreta. Confira números retornados e trate falhas externas como indisponibilidade, sem gravar automaticamente.
 
 Mensagens de falha distinguem chave rejeitada, limite externo e outras respostas HTTP. Conversas locais não são persistidas pelo app; isso não afirma ausência de registros do provedor.
+
+## Ferramentas de lembretes
+
+getReminders consulta somente a conta autenticada. createReminder, updateReminder e deleteReminder preparam propostas com target reminders; o usuário confirma antes de qualquer alteração. Repetição, data, horário e canais são validados por reminderSchema. O owner e o endereço de e-mail nunca são argumentos aceitos nessas ferramentas. Frases diárias conhecidas também funcionam sem o modelo. Consulte [Lembretes](REMINDERS.md).
+

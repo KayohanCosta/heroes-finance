@@ -47,8 +47,9 @@ public class MainActivity extends FragmentActivity {
     if(!main||!URL.equals(origin.toString())||!trusted(v.getUrl()))return;
     try{
      JSONObject data=new JSONObject(message.getData());String action=data.optString("action");
-     if(action.equals("sync")) ReminderScheduler.replace(this,data.getJSONArray("dates"));
-     if(action.equals("clear")) ReminderScheduler.replace(this,new JSONArray());
+     if(action.equals("syncReminders")){ReminderScheduler.replace(this,data.getJSONArray("items"));getPreferences(0).edit().putBoolean("reminders_v2",true).apply();}
+     if(action.equals("sync")&&!getPreferences(0).getBoolean("reminders_v2",false)) ReminderScheduler.replace(this,data.getJSONArray("dates"));
+     if(action.equals("clear")){ReminderScheduler.replace(this,new JSONArray());((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();}
      if(action.equals("notifications")){if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},1);}
      if(action.equals("biometry")) authenticate(true);
     }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}

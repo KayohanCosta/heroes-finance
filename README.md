@@ -125,3 +125,7 @@ O código está público para consulta. Não foi concedida uma licença específ
 
 Consulte [instalação, biometria e lembretes](docs/ANDROID.md). O workflow APK Android gera uma versão de teste sem Google Play.
 
+## Lembretes programados
+
+Cadastre horários e repetições na aba Lembretes ou prepare uma proposta pelo Heroes Agent. Há notificações locais no Android e integração de e-mail com Resend. O e-mail exige chave e remetente de domínio verificado; a interface informa quando a configuração está pendente. Veja [uso, configuração, privacidade e agendamento](docs/REMINDERS.md).
+

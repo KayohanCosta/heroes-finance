@@ -21,7 +21,7 @@ npm test executa arquivos tests/*.test.ts com tsx e node:test. Build verifica Ty
 | payment-flow.test.ts | Express real local, repetição concorrente, despesa, desfazer e dívidas |
 | api.test.ts | Cenário opcional contra API local autenticada |
 
-A suíte principal reúne 16 casos, incluindo dois testes dos atalhos do agente. O cenário opcional exige configuração e não deve ser contado como executado quando está skipped. Testes locais usam contas/dados sintéticos e diretórios temporários. Eles não fazem login em contas pessoais reais.
+A suíte principal reúne 23 casos, incluindo sete testes de lembretes programados. O cenário opcional exige configuração e não deve ser contado como executado quando está skipped. Testes locais usam contas/dados sintéticos e diretórios temporários. Eles não fazem login em contas pessoais reais.
 
 ## Teste opcional de API
 
@@ -65,3 +65,6 @@ Não há teste automatizado de navegador, cobertura percentual publicada, teste 
 ## Política de regressão
 
 Nova regra financeira precisa de teste que capture comportamento, incluindo fronteiras relevantes. Mudanças visuais simples não exigem testes que apenas copiem estrutura de CSS. Alterar TypeScript e SQL de agenda exige conferir equivalência em meses curtos, ano bissexto e ownership.
+
+Os testes de lembretes cobrem interpretação sem LLM, fuso de Brasília, meses curtos, privacidade, destinatário por owner e idempotência do Resend. O cenário de API real também cobre CRUD de lembretes, pausa, revisão e bloqueio entre perfis. O envio real de e-mail permanece pendente de configuração do provedor.
+

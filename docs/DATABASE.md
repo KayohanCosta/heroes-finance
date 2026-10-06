@@ -2,7 +2,7 @@
 
 ## Organização
 
-Postgres no Supabase, schema public. Finanças e sessões são acessadas exclusivamente pelo backend. RLS está habilitado em todas as seis tabelas e permissões de anon/authenticated foram revogadas. A chave de servidor exige proteção: ela ultrapassa RLS.
+Postgres no Supabase, schema public. Finanças e sessões são acessadas exclusivamente pelo backend. RLS está habilitado em todas as oito tabelas e permissões de anon/authenticated foram revogadas. A chave de servidor exige proteção: ela ultrapassa RLS.
 
 ## Migrations
 
@@ -75,3 +75,9 @@ Após mudanças, valide RLS, grants, acesso ao outro owner e funções. Não use
 Backup financeiro precisa preservar tabelas relacionadas, esquema e funções. Backup apenas de transactions não restaura estado de compromissos e pagamentos. Dados de Auth exigem estratégia própria do provedor. Configure retenção e frequência conforme plano, risco e volume; este repositório não ativa backups automáticos.
 
 Restaure primeiro em ambiente separado e confira contagens, vínculo payment/transaction, total por owner e login. Sessões são credenciais temporárias; invalidá-las durante recuperação pode ser apropriado. Não publique dumps.
+
+
+## Lembretes programados
+
+As tabelas reminders e reminder_deliveries armazenam agendas e ocorrências. Consulte [agendamento, segurança e configuração](REMINDERS.md) para as duas migrations adicionais, as funções atômicas e o Supabase Cron.
+
