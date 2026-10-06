@@ -40,7 +40,7 @@ public class MainActivity extends FragmentActivity {
     if(!trusted(v.getUrl()))return false;
     if(photoCallback!=null)photoCallback.onReceiveValue(null);photoCallback=callback;
     android.content.Intent picker=new android.content.Intent(android.content.Intent.ACTION_GET_CONTENT);picker.setType("image/*");picker.addCategory(android.content.Intent.CATEGORY_OPENABLE);
-    try{photoPicker.launch(picker);}catch(Exception e){photoCallback.onReceiveValue(null);photoCallback=null;Toast.makeText(MainActivity.this,"Não foi possível abrir as fotos.",Toast.LENGTH_SHORT).show();}return true;
+    try{photoPicker.launch(picker);}catch(Exception e){photoCallback.onReceiveValue(null);photoCallback=null;Toast.makeText(MainActivity.this,"NÃ£o foi possÃ­vel abrir as fotos.",Toast.LENGTH_SHORT).show();}return true;
    }
    @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){
     if(!trusted(url)){result.cancel();return true;}
@@ -49,7 +49,7 @@ public class MainActivity extends FragmentActivity {
   });
   web.setWebViewClient(new WebViewClient(){
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !trusted(r.getUrl().toString());}
-   @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexão. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
+   @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexÃ£o. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
   });
   if(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
    WebViewCompat.addWebMessageListener(web,"HeroesAndroid",Collections.singleton(URL),(v,message,origin,main,reply)->{
@@ -64,7 +64,7 @@ public class MainActivity extends FragmentActivity {
      if(action.equals("biometryOff")){disableAfterAuth=true;authenticate(false);}
      if(action.equals("deviceState"))publishDeviceState();
      if(action.equals("notificationSettings")){android.content.Intent settings=new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());startActivity(settings);}
-    }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
+    }catch(Exception e){Toast.makeText(this,"NÃ£o foi possÃ­vel atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
    });
   }
   if(enabled())showShield();
@@ -77,18 +77,28 @@ public class MainActivity extends FragmentActivity {
  }
  @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){super.onRequestPermissionsResult(requestCode,permissions,results);publishDeviceState();}
  private boolean trusted(String url){if(url==null)return false;android.net.Uri u=android.net.Uri.parse(url);return "https".equals(u.getScheme())&&"heroesfinance.vercel.app".equals(u.getHost())&&(u.getPort()==-1||u.getPort()==443);}
+ private int dp(int value){return Math.round(value*getResources().getDisplayMetrics().density);}
+ private android.graphics.drawable.GradientDrawable surface(int color,int radius){android.graphics.drawable.GradientDrawable bg=new android.graphics.drawable.GradientDrawable();bg.setColor(color);bg.setCornerRadius(dp(radius));return bg;}
+ private TextView shieldText(String text,int size,int color){TextView v=new TextView(this);v.setText(text);v.setTextSize(size);v.setTextColor(color);v.setGravity(Gravity.CENTER);v.setPadding(0,dp(10),0,dp(10));return v;}
  private void showShield(){
   unlocked=false;web.setVisibility(View.INVISIBLE);
   if(shield!=null)return;
-  shield=new LinearLayout(this);shield.setOrientation(LinearLayout.VERTICAL);shield.setGravity(Gravity.CENTER);shield.setBackgroundColor(Color.rgb(9,13,18));shield.setPadding(32,32,32,32);
-  TextView title=new TextView(this);title.setText("HEROES FINANCE\nSeu workspace está protegido.");title.setTextColor(Color.WHITE);title.setTextSize(22);title.setGravity(Gravity.CENTER);shield.addView(title);
-  Button button=new Button(this);button.setText("Desbloquear");button.setOnClickListener(v->authenticate(false));shield.addView(button);root.addView(shield,new FrameLayout.LayoutParams(-1,-1));
+  shield=new LinearLayout(this);shield.setOrientation(LinearLayout.VERTICAL);shield.setGravity(Gravity.CENTER);shield.setBackgroundColor(Color.rgb(9,13,18));shield.setPadding(dp(28),dp(24),dp(28),dp(24));
+  ImageView logo=new ImageView(this);logo.setImageResource(app.heroes.finance.R.drawable.ic_heroes);logo.setBackground(surface(Color.BLACK,20));logo.setPadding(dp(8),dp(8),dp(8),dp(8));shield.addView(logo,new LinearLayout.LayoutParams(dp(76),dp(76)));
+  TextView brand=shieldText("HEROES FINANCE",13,Color.rgb(231,185,111));brand.setLetterSpacing(.16f);shield.addView(brand);
+  LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setGravity(Gravity.CENTER);card.setPadding(dp(24),dp(28),dp(24),dp(28));card.setBackground(surface(Color.rgb(18,24,32),24));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.topMargin=dp(28);shield.addView(card,cp);
+  TextView title=shieldText("Seu dinheiro, protegido.",25,Color.rgb(237,241,247));title.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);card.addView(title);
+  card.addView(shieldText("Confirme sua identidade para acessar seu workspace.",14,Color.rgb(148,162,181)));
+  Button button=new Button(this);button.setAllCaps(false);button.setText("Desbloquear");button.setTextSize(15);button.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);button.setTextColor(Color.rgb(31,24,13));button.setBackground(surface(Color.rgb(233,185,108),12));button.setOnClickListener(v->authenticate(false));LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(-1,dp(54));bp.topMargin=dp(24);bp.bottomMargin=dp(12);card.addView(button,bp);
+  card.addView(shieldText(Build.VERSION.SDK_INT>=30?"Use sua biometria ou o bloqueio do aparelho.":"Use sua biometria cadastrada no aparelho.",12,Color.rgb(148,162,181)));
+  TextView privacy=shieldText("Sua biometria permanece no dispositivo.",11,Color.rgb(111,127,147));LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,-2);pp.topMargin=dp(24);shield.addView(privacy,pp);
+  root.addView(shield,new FrameLayout.LayoutParams(-1,-1));
  }
  private void authenticate(boolean enable){
   if(prompting)return;
   int authenticators=BiometricManager.Authenticators.BIOMETRIC_STRONG;
   if(Build.VERSION.SDK_INT>=30)authenticators|=BiometricManager.Authenticators.DEVICE_CREDENTIAL;
-  if(BiometricManager.from(this).canAuthenticate(authenticators)!=BiometricManager.BIOMETRIC_SUCCESS){disableAfterAuth=false;Toast.makeText(this,"Cadastre uma biometria ou bloqueio compatível nas configurações do Android.",Toast.LENGTH_LONG).show();return;}
+  if(BiometricManager.from(this).canAuthenticate(authenticators)!=BiometricManager.BIOMETRIC_SUCCESS){disableAfterAuth=false;Toast.makeText(this,"Cadastre uma biometria ou bloqueio compatÃ­vel nas configuraÃ§Ãµes do Android.",Toast.LENGTH_LONG).show();return;}
   prompting=true;
   BiometricPrompt prompt=new BiometricPrompt(this,ContextCompat.getMainExecutor(this),new BiometricPrompt.AuthenticationCallback(){
    @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result){prompting=false;unlocked=true;if(disableAfterAuth){getPreferences(0).edit().putBoolean("biometry",false).apply();disableAfterAuth=false;}if(enable)getPreferences(0).edit().putBoolean("biometry",true).apply();if(shield!=null){root.removeView(shield);shield=null;}web.setVisibility(View.VISIBLE);publishDeviceState();}
