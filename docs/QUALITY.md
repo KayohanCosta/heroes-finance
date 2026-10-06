@@ -21,7 +21,7 @@ npm test executa arquivos tests/*.test.ts com tsx e node:test. Build verifica Ty
 | payment-flow.test.ts | Express real local, repetição concorrente, despesa, desfazer e dívidas |
 | api.test.ts | Cenário opcional contra API local autenticada |
 
-A suíte principal validada reúne 14 casos. O cenário opcional exige configuração e não deve ser contado como executado quando está skipped. Testes locais usam contas/dados sintéticos e diretórios temporários. Eles não fazem login em contas pessoais reais.
+A suíte principal reúne 16 casos, incluindo dois testes dos atalhos do agente. O cenário opcional exige configuração e não deve ser contado como executado quando está skipped. Testes locais usam contas/dados sintéticos e diretórios temporários. Eles não fazem login em contas pessoais reais.
 
 ## Teste opcional de API
 

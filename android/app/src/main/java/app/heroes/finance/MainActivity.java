@@ -1,0 +1,80 @@
+package app.heroes.finance;
+
+import android.Manifest;
+import android.os.*;
+import android.graphics.Color;
+import android.webkit.*;
+import android.view.*;
+import android.widget.*;
+import androidx.fragment.app.FragmentActivity;
+import androidx.biometric.*;
+import androidx.core.content.ContextCompat;
+import androidx.webkit.*;
+import java.util.Collections;
+import org.json.*;
+
+public class MainActivity extends FragmentActivity {
+ private static final String URL="https://heroesfinance.vercel.app";
+ private WebView web;
+ private FrameLayout root;
+ private LinearLayout shield;
+ private boolean prompting=false, unlocked=false;
+ private boolean enabled(){return getPreferences(0).getBoolean("biometry",false);}
+ @Override public void onCreate(Bundle state){
+  super.onCreate(state);
+  getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+  getWindow().setStatusBarColor(Color.rgb(9,13,18));
+  getWindow().setNavigationBarColor(Color.rgb(9,13,18));
+  root=new FrameLayout(this); setContentView(root);
+  androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root,(v,insets)->{androidx.core.graphics.Insets bars=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()|androidx.core.view.WindowInsetsCompat.Type.ime());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);return insets;});
+  web=new WebView(this);root.addView(web);
+  web.setBackgroundColor(Color.rgb(9,13,18));
+  WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);
+  s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+  CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
+  web.setWebViewClient(new WebViewClient(){
+   @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !trusted(r.getUrl().toString());}
+   @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexão. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
+  });
+  if(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
+   WebViewCompat.addWebMessageListener(web,"HeroesAndroid",Collections.singleton(URL),(v,message,origin,main,reply)->{
+    if(!main||!URL.equals(origin.toString())||!trusted(v.getUrl()))return;
+    try{
+     JSONObject data=new JSONObject(message.getData());String action=data.optString("action");
+     if(action.equals("sync")) ReminderScheduler.replace(this,data.getJSONArray("dates"));
+     if(action.equals("clear")) ReminderScheduler.replace(this,new JSONArray());
+     if(action.equals("notifications")){if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},1);}
+     if(action.equals("biometry")) authenticate(true);
+    }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
+   });
+  }
+  if(enabled())showShield();
+  web.loadUrl(URL);
+ }
+ private boolean trusted(String url){if(url==null)return false;android.net.Uri u=android.net.Uri.parse(url);return "https".equals(u.getScheme())&&"heroesfinance.vercel.app".equals(u.getHost())&&(u.getPort()==-1||u.getPort()==443);}
+ private void showShield(){
+  unlocked=false;web.setVisibility(View.INVISIBLE);
+  if(shield!=null)return;
+  shield=new LinearLayout(this);shield.setOrientation(LinearLayout.VERTICAL);shield.setGravity(Gravity.CENTER);shield.setBackgroundColor(Color.rgb(9,13,18));shield.setPadding(32,32,32,32);
+  TextView title=new TextView(this);title.setText("HEROES FINANCE\nSeu workspace está protegido.");title.setTextColor(Color.WHITE);title.setTextSize(22);title.setGravity(Gravity.CENTER);shield.addView(title);
+  Button button=new Button(this);button.setText("Desbloquear");button.setOnClickListener(v->authenticate(false));shield.addView(button);root.addView(shield,new FrameLayout.LayoutParams(-1,-1));
+ }
+ private void authenticate(boolean enable){
+  if(prompting)return;
+  int authenticators=BiometricManager.Authenticators.BIOMETRIC_STRONG;
+  if(Build.VERSION.SDK_INT>=30)authenticators|=BiometricManager.Authenticators.DEVICE_CREDENTIAL;
+  if(BiometricManager.from(this).canAuthenticate(authenticators)!=BiometricManager.BIOMETRIC_SUCCESS){Toast.makeText(this,"Cadastre uma biometria ou bloqueio compatível nas configurações do Android.",Toast.LENGTH_LONG).show();return;}
+  prompting=true;
+  BiometricPrompt prompt=new BiometricPrompt(this,ContextCompat.getMainExecutor(this),new BiometricPrompt.AuthenticationCallback(){
+   @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result){prompting=false;unlocked=true;if(enable)getPreferences(0).edit().putBoolean("biometry",true).apply();if(shield!=null){root.removeView(shield);shield=null;}web.setVisibility(View.VISIBLE);}
+   @Override public void onAuthenticationError(int code,CharSequence message){prompting=false;Toast.makeText(MainActivity.this,message,Toast.LENGTH_SHORT).show();}
+  });
+  BiometricPrompt.PromptInfo.Builder info=new BiometricPrompt.PromptInfo.Builder().setTitle("Heroes Finance").setSubtitle("Confirme sua identidade").setAllowedAuthenticators(authenticators);
+  if(Build.VERSION.SDK_INT<30)info.setNegativeButtonText("Cancelar");
+  prompt.authenticate(info.build());
+ }
+ @Override protected void onPause(){if(enabled())showShield();super.onPause();CookieManager.getInstance().flush();}
+ @Override protected void onResume(){super.onResume();if(enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}}
+ @Override public void onBackPressed(){if(shield==null&&web.canGoBack())web.goBack();else super.onBackPressed();}
+ @Override protected void onDestroy(){web.destroy();super.onDestroy();}
+}

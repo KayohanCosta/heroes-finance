@@ -120,3 +120,8 @@ vercel.json             Build, roteamento e cabeçalhos
 
 O código está público para consulta. Não foi concedida uma licença específica de reutilização: consulte o titular antes de redistribuir código, marca ou ativos. Dependências mantêm suas próprias licenças.
 
+
+## Aplicativo Android
+
+Consulte [instalação, biometria e lembretes](docs/ANDROID.md). O workflow APK Android gera uma versão de teste sem Google Play.
+
