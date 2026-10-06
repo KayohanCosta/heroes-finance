@@ -56,3 +56,7 @@ A busca consulta exclusivamente os releases públicos de `KayohanCosta/heroes-fi
 O workflow publica APK de release somente quando os Secrets privados `HEROES_KEYSTORE_BASE64` e `HEROES_KEYSTORE_PASSWORD` estão configurados. O alias é `heroes`. Sem eles, gera apenas o APK de teste, sem alegar que publicou atualização estável. A chave nunca entra no Git; preserve uma cópia privada permanente. Perder essa assinatura impede atualizar instalações existentes com a mesma identidade. Incremente versionCode e versionName a cada versão; releases já publicados nunca são sobrescritos. O checksum SHA256SUMS acompanha o download.
 
 A primeira migração de um APK de teste para o APK assinado pode exigir desinstalar o antigo por diferença de assinatura. Os registros e preferências de conta permanecem no servidor, mas permissões e bloqueio deste aparelho precisarão ser configurados novamente. As versões assinadas seguintes poderão atualizar a instalação normalmente.
+
+### Correção da abertura em 1.4.1
+
+A janela inicial do Android usa fundo preto e ícone transparente, sem o ícone estático sobre fundo cinza. A animação de saída do sistema é removida imediatamente. O Android 12 ou superior ainda cria sua janela inicial obrigatória, mas sua aparência se integra ao fundo preto do vídeo local. O vídeo e o desbloqueio biométrico continuam preservados.

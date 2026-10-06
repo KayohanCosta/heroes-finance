@@ -30,9 +30,10 @@ public class MainActivity extends FragmentActivity {
  private boolean enabled(){return getPreferences(0).getBoolean("biometry",false);}
  @Override public void onCreate(Bundle state){
   super.onCreate(state);
+  if(Build.VERSION.SDK_INT>=31)getSplashScreen().setOnExitAnimationListener(view->view.remove());
   getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-  getWindow().setStatusBarColor(Color.rgb(9,13,18));
-  getWindow().setNavigationBarColor(Color.rgb(9,13,18));
+  getWindow().setStatusBarColor(Color.BLACK);
+  getWindow().setNavigationBarColor(Color.BLACK);
   root=new FrameLayout(this); setContentView(root);updates=new AppUpdates(this);
   androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root,(v,insets)->{androidx.core.graphics.Insets bars=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()|androidx.core.view.WindowInsetsCompat.Type.ime());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);return insets;});
   web=new WebView(this);root.addView(web);
