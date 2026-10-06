@@ -17,11 +17,12 @@ test('login, cookies, isolamento de todas as rotas, logout e ativação única',
  for(const path of ['Arielle/transactions','Arielle/fixed','Arielle/agent'])for(const method of ['GET','POST','PUT','DELETE'])assert.equal((await request(path,method,method==='GET'?undefined:{owner:'Kayohan'},cookie)).status,403);
  assert.equal((await request('Kayohan/transactions','GET',undefined,cookie)).status,200);assert.equal((await request('Kayohan/agent','POST',{message:'test'},cookie,'https://evil.example')).status,403);
  const invites=JSON.parse(await readFile('data/invitations.json','utf8'));const code=invites.find((i:any)=>i.owner==='Arielle').code;assert.equal((await request('auth/activate','POST',{email:'kay@example.test',password,code})).status,400);assert.equal((await request('auth/activate','POST',{email:'ari@example.test',password,code})).status,200);assert.equal((await request('auth/activate','POST',{email:'ari@example.test',password,code})).status,400);const arLogin=await request('auth/login','POST',{email:'ari@example.test',password});const arCookie=arLogin.headers.get('set-cookie')!.split(';')[0];assert.equal((await request('Kayohan/transactions','GET',undefined,arCookie)).status,403);assert.deepEqual(await(await request('auth/me','GET',undefined,arCookie)).json(),{owner:'Arielle'});
- const profile={...defaultSettings('Nome privado'),hideBalances:true,showAgent:false};
+ const profile={...defaultSettings('Nome privado'),hideBalances:true,showAgent:false,theme:'light'};
  assert.equal((await request('Kayohan/settings','PUT',profile,cookie)).status,200);
  assert.deepEqual((await(await request('Kayohan/settings','GET',undefined,cookie)).json()).settings,profile);
  assert.equal((await(await request('Arielle/settings','GET',undefined,arCookie)).json()).settings.displayName,'Arielle');
  assert.equal((await request('Arielle/settings','PUT',profile,cookie)).status,403);
+ assert.equal((await request('Kayohan/settings','PUT',{...profile,theme:'invalid'},cookie)).status,400);
  assert.equal((await request('Kayohan/settings','PUT',{...profile,owner:'Arielle'},cookie)).status,400);
  assert.equal((await request('Kayohan/settings','PUT',{...profile,avatar:'data:image/jpeg;base64,YmFk'},cookie)).status,400);
  assert.deepEqual(JSON.parse(await readFile('data/settings.json','utf8')).Kayohan,profile);
