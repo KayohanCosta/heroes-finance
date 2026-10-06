@@ -45,3 +45,14 @@ Essas verificações exigem um aparelho ou emulador Android e não são substitu
 
 O APK 1.1.0 adiciona lembretes pessoais com horário escolhido, conteúdo discreto e repetição. A sincronização funciona em qualquer aba. Instale a nova versão para receber esses avisos; o APK 1.0.0 continua limitado aos vencimentos às 9h. Veja [Lembretes programados](REMINDERS.md) para configuração de e-mail e limites da agenda local.
 
+
+
+## Atualizações pela rede
+
+A versão 1.4.0 introduz abertura local em vídeo de 2,6 segundos, busca diária de versões estáveis e busca manual em Configurações. O vídeo está incluído no APK: não depende da internet, não tem áudio e encerra em até 3,4 segundos mesmo se o player falhar. O desbloqueio biométrico ocorre depois da abertura.
+
+A busca consulta exclusivamente os releases públicos de `KayohanCosta/heroes-finance`, aceita tags `android-vX.Y.Z`, ignora versões de teste e oferece somente o arquivo `heroes-finance.apk` do mesmo release. O usuário escolhe baixar e o navegador abre o download; o instalador Android pede confirmação. Não há instalação silenciosa nem permissão de instalar pacotes concedida ao próprio Heroes. Falhas de rede não impedem usar o app. Escolher Agora não silencia o aviso automático daquela versão; a busca manual continua disponível.
+
+O workflow publica APK de release somente quando os Secrets privados `HEROES_KEYSTORE_BASE64` e `HEROES_KEYSTORE_PASSWORD` estão configurados. O alias é `heroes`. Sem eles, gera apenas o APK de teste, sem alegar que publicou atualização estável. A chave nunca entra no Git; preserve uma cópia privada permanente. Perder essa assinatura impede atualizar instalações existentes com a mesma identidade. Incremente versionCode e versionName a cada versão; releases já publicados nunca são sobrescritos. O checksum SHA256SUMS acompanha o download.
+
+A primeira migração de um APK de teste para o APK assinado pode exigir desinstalar o antigo por diferença de assinatura. Os registros e preferências de conta permanecem no servidor, mas permissões e bloqueio deste aparelho precisarão ser configurados novamente. As versões assinadas seguintes poderão atualizar a instalação normalmente.

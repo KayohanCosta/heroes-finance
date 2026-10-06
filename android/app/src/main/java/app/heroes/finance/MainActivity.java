@@ -16,6 +16,11 @@ import org.json.*;
 public class MainActivity extends FragmentActivity {
  private static final String URL="https://heroesfinance.vercel.app";
  private WebView web;
+ private LinearLayout opening;
+ private VideoView openingVideo;
+ private boolean openingActive=true;
+ private final Handler openingHandler=new Handler(Looper.getMainLooper());
+ private AppUpdates updates;
  private ValueCallback<android.net.Uri[]> photoCallback;
  private boolean disableAfterAuth=false;
  private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> photoPicker=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),result->{if(photoCallback!=null){photoCallback.onReceiveValue(result.getResultCode()==RESULT_OK&&result.getData()!=null&&result.getData().getData()!=null?new android.net.Uri[]{result.getData().getData()}:null);photoCallback=null;}});
@@ -28,7 +33,7 @@ public class MainActivity extends FragmentActivity {
   getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
   getWindow().setStatusBarColor(Color.rgb(9,13,18));
   getWindow().setNavigationBarColor(Color.rgb(9,13,18));
-  root=new FrameLayout(this); setContentView(root);
+  root=new FrameLayout(this); setContentView(root);updates=new AppUpdates(this);
   androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root,(v,insets)->{androidx.core.graphics.Insets bars=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()|androidx.core.view.WindowInsetsCompat.Type.ime());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);return insets;});
   web=new WebView(this);root.addView(web);
   web.setBackgroundColor(Color.rgb(9,13,18));
@@ -40,7 +45,7 @@ public class MainActivity extends FragmentActivity {
     if(!trusted(v.getUrl()))return false;
     if(photoCallback!=null)photoCallback.onReceiveValue(null);photoCallback=callback;
     android.content.Intent picker=new android.content.Intent(android.content.Intent.ACTION_GET_CONTENT);picker.setType("image/*");picker.addCategory(android.content.Intent.CATEGORY_OPENABLE);
-    try{photoPicker.launch(picker);}catch(Exception e){photoCallback.onReceiveValue(null);photoCallback=null;Toast.makeText(MainActivity.this,"NÃ£o foi possÃ­vel abrir as fotos.",Toast.LENGTH_SHORT).show();}return true;
+    try{photoPicker.launch(picker);}catch(Exception e){photoCallback.onReceiveValue(null);photoCallback=null;Toast.makeText(MainActivity.this,"Não foi possível abrir as fotos.",Toast.LENGTH_SHORT).show();}return true;
    }
    @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){
     if(!trusted(url)){result.cancel();return true;}
@@ -49,7 +54,7 @@ public class MainActivity extends FragmentActivity {
   });
   web.setWebViewClient(new WebViewClient(){
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !trusted(r.getUrl().toString());}
-   @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexÃ£o. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
+   @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexão. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
   });
   if(WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)){
    WebViewCompat.addWebMessageListener(web,"HeroesAndroid",Collections.singleton(URL),(v,message,origin,main,reply)->{
@@ -63,12 +68,25 @@ public class MainActivity extends FragmentActivity {
      if(action.equals("biometry")) authenticate(true);
      if(action.equals("biometryOff")){disableAfterAuth=true;authenticate(false);}
      if(action.equals("deviceState"))publishDeviceState();
+     if(action.equals("checkUpdate"))updates.check(true);
      if(action.equals("notificationSettings")){android.content.Intent settings=new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());startActivity(settings);}
-    }catch(Exception e){Toast.makeText(this,"NÃ£o foi possÃ­vel atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
+    }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
    });
   }
-  if(enabled())showShield();
   web.loadUrl(URL);
+  showOpening();
+ }
+ private void showOpening(){
+  opening=new LinearLayout(this);opening.setOrientation(LinearLayout.VERTICAL);opening.setGravity(Gravity.CENTER);opening.setBackgroundColor(Color.BLACK);opening.setPadding(dp(24),dp(24),dp(24),dp(24));
+  openingVideo=new VideoView(this);int width=Math.min(getResources().getDisplayMetrics().widthPixels-dp(48),dp(320));int height=Math.round(width*574f/480f);opening.addView(openingVideo,new LinearLayout.LayoutParams(width,height));
+  TextView name=shieldText("HEROES FINANCE",14,Color.rgb(232,187,117));name.setLetterSpacing(.18f);opening.addView(name);root.addView(opening,new FrameLayout.LayoutParams(-1,-1));
+  openingVideo.setOnPreparedListener(player->{player.setVolume(0,0);openingVideo.start();});openingVideo.setOnCompletionListener(player->finishOpening(true));openingVideo.setOnErrorListener((player,what,extra)->{finishOpening(true);return true;});
+  openingVideo.setVideoURI(android.net.Uri.parse("android.resource://"+getPackageName()+"/"+R.raw.heroes_opening));
+  openingHandler.postDelayed(()->finishOpening(true),3400);
+ }
+ private void finishOpening(boolean authenticateNow){
+  if(!openingActive)return;openingActive=false;openingHandler.removeCallbacksAndMessages(null);if(openingVideo!=null)openingVideo.stopPlayback();if(opening!=null){root.removeView(opening);opening=null;}
+  if(enabled()){showShield();if(authenticateNow)authenticate(false);}else if(authenticateNow)updates.check(false);
  }
  private void publishDeviceState(){
   if(web==null||!trusted(web.getUrl()))return;
@@ -98,18 +116,18 @@ public class MainActivity extends FragmentActivity {
   if(prompting)return;
   int authenticators=BiometricManager.Authenticators.BIOMETRIC_STRONG;
   if(Build.VERSION.SDK_INT>=30)authenticators|=BiometricManager.Authenticators.DEVICE_CREDENTIAL;
-  if(BiometricManager.from(this).canAuthenticate(authenticators)!=BiometricManager.BIOMETRIC_SUCCESS){disableAfterAuth=false;Toast.makeText(this,"Cadastre uma biometria ou bloqueio compatÃ­vel nas configuraÃ§Ãµes do Android.",Toast.LENGTH_LONG).show();return;}
+  if(BiometricManager.from(this).canAuthenticate(authenticators)!=BiometricManager.BIOMETRIC_SUCCESS){disableAfterAuth=false;Toast.makeText(this,"Cadastre uma biometria ou bloqueio compatível nas configurações do Android.",Toast.LENGTH_LONG).show();return;}
   prompting=true;
   BiometricPrompt prompt=new BiometricPrompt(this,ContextCompat.getMainExecutor(this),new BiometricPrompt.AuthenticationCallback(){
-   @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result){prompting=false;unlocked=true;if(disableAfterAuth){getPreferences(0).edit().putBoolean("biometry",false).apply();disableAfterAuth=false;}if(enable)getPreferences(0).edit().putBoolean("biometry",true).apply();if(shield!=null){root.removeView(shield);shield=null;}web.setVisibility(View.VISIBLE);publishDeviceState();}
+   @Override public void onAuthenticationSucceeded(BiometricPrompt.AuthenticationResult result){prompting=false;unlocked=true;if(disableAfterAuth){getPreferences(0).edit().putBoolean("biometry",false).apply();disableAfterAuth=false;}if(enable)getPreferences(0).edit().putBoolean("biometry",true).apply();if(shield!=null){root.removeView(shield);shield=null;}web.setVisibility(View.VISIBLE);publishDeviceState();updates.check(false);}
    @Override public void onAuthenticationError(int code,CharSequence message){prompting=false;disableAfterAuth=false;Toast.makeText(MainActivity.this,message,Toast.LENGTH_SHORT).show();}
   });
   BiometricPrompt.PromptInfo.Builder info=new BiometricPrompt.PromptInfo.Builder().setTitle("Heroes Finance").setSubtitle("Confirme sua identidade").setAllowedAuthenticators(authenticators);
   if(Build.VERSION.SDK_INT<30)info.setNegativeButtonText("Cancelar");
   prompt.authenticate(info.build());
  }
- @Override protected void onPause(){if(enabled())showShield();super.onPause();CookieManager.getInstance().flush();}
- @Override protected void onResume(){super.onResume();publishDeviceState();if(enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}}
+ @Override protected void onPause(){if(openingActive)finishOpening(false);if(enabled())showShield();super.onPause();CookieManager.getInstance().flush();}
+ @Override protected void onResume(){super.onResume();publishDeviceState();if(!openingActive&&enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}else if(!openingActive&&!enabled())updates.check(false);}
  @Override public void onBackPressed(){if(shield==null&&web.canGoBack())web.goBack();else super.onBackPressed();}
- @Override protected void onDestroy(){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web.destroy();super.onDestroy();}
+ @Override protected void onDestroy(){openingHandler.removeCallbacksAndMessages(null);if(openingVideo!=null)openingVideo.stopPlayback();if(updates!=null)updates.close();if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web.destroy();super.onDestroy();}
 }

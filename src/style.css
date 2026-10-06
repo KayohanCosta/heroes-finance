@@ -63,3 +63,6 @@ html[data-theme=light] .heroes-quick-menu strong{color:#28384f}
 html[data-theme=light] .heroes-quick-menu small{color:#64748b}
 html[data-theme=light] .heroes-quick-menu .quick-heading button{background:transparent;color:#64748b}
 html[data-theme=light] .heroes-quick-menu .quick-arrow{color:#8c6c38}
+
+.header-actions{display:flex;align-items:center;gap:10px}.theme-toggle{display:grid;place-items:center;width:42px;height:42px;padding:10px;border-radius:12px;background:#151c25;color:#e8bc78;border:1px solid #2d3541;flex-shrink:0}.theme-toggle svg{width:20px;height:20px}.theme-toggle:disabled{opacity:.5}@media(max-width:700px){.header-actions{gap:8px}.theme-toggle{width:36px;height:36px;padding:8px;border-radius:10px}}
+html[data-theme=light] .theme-toggle{color:#526784;background:#ffffffcc;border-color:#dce3ed}

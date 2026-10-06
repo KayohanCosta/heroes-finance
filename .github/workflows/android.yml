@@ -6,10 +6,17 @@ on:
     paths: ['android/**', '.github/workflows/android.yml']
 permissions:
   contents: read
+concurrency:
+  group: heroes-android-main
+  cancel-in-progress: false
 jobs:
   apk:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: write
+    env:
+      HEROES_SIGNING_READY: ${{ secrets.HEROES_KEYSTORE_BASE64 != '' && secrets.HEROES_KEYSTORE_PASSWORD != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -23,7 +30,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - run: gradle --no-daemon assembleDebug lintDebug
+      - name: Validar APK de teste
+        run: gradle --no-daemon assembleDebug lintDebug
         working-directory: android
       - uses: actions/upload-artifact@v4
         with:
@@ -31,3 +39,35 @@ jobs:
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Preparar assinatura privada
+        if: env.HEROES_SIGNING_READY == 'true'
+        env:
+          HEROES_KEYSTORE_BASE64: ${{ secrets.HEROES_KEYSTORE_BASE64 }}
+        run: |
+          umask 077
+          printf '%s' "$HEROES_KEYSTORE_BASE64" | base64 --decode > android/app/heroes-release.jks
+      - name: Gerar APK assinado e validar
+        if: env.HEROES_SIGNING_READY == 'true'
+        env:
+          HEROES_KEYSTORE_PASSWORD: ${{ secrets.HEROES_KEYSTORE_PASSWORD }}
+        run: gradle --no-daemon assembleRelease lintRelease
+        working-directory: android
+      - name: Publicar atualização estável
+        if: env.HEROES_SIGNING_READY == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(sed -n "s/.*versionName '\([^']*\)'.*/\1/p" android/app/build.gradle)
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          tag="android-v$version"
+          # Never replace an existing version: increment versionCode/versionName instead.
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo 'Versão já publicada; APK existente preservado.'
+            exit 0
+          fi
+          cp android/app/build/outputs/apk/release/app-release.apk heroes-finance.apk
+          sha256sum heroes-finance.apk > SHA256SUMS.txt
+          gh release create "$tag" heroes-finance.apk SHA256SUMS.txt --target "$GITHUB_SHA" --title "Heroes Finance Android $version" --notes 'Aplicativo Android assinado. Baixe heroes-finance.apk e confirme a instalação no aparelho. Atualizações web chegam ao abrir o app; esta versão atualiza os recursos nativos.' --latest
+      - name: Remover material de assinatura do runner
+        if: always()
+        run: rm -f android/app/heroes-release.jks
