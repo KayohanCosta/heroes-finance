@@ -24,6 +24,16 @@ Pausar, editar, excluir ou sair da conta atualiza/cancela os alarmes neste apare
 
 ## Configurar e-mail
 
+### Gmail: sem comprar dom�nio
+
+Para uso pessoal, configure `REMINDER_EMAIL_PROVIDER=gmail`, `GMAIL_USER` (uma conta `@gmail.com`) e `GMAIL_APP_PASSWORD` como segredo **somente no servidor/Vercel**. A senha de app � gerada pelo pr�prio usu�rio em https://myaccount.google.com/apppasswords, ap�s ativar verifica��o em duas etapas. N�o utilize a senha normal, n�o envie a credencial por chat e n�o a coloque no GitHub. Algumas contas n�o permitem senhas de app; veja a [documenta��o do Google](https://support.google.com/accounts/answer/185833?hl=pt-BR).
+
+O remetente � a conta Gmail configurada, com nome Heroes Finance. Nenhum dom�nio ou plano pago � contratado. Gmail imp�e limites e pode bloquear envio automatizado; este modo � destinado ao baixo volume dos dois perfis, sem SLA. Os destinat�rios continuam fixos por owner. Sem credenciais, o canal permanece indispon�vel. Ap�s configurar, fa�a novo deploy, crie um lembrete futuro de teste e confira recebimento e pasta de spam.
+
+A conex�o SMTP usa TLS obrigat�rio em `smtp.gmail.com:465`, valida��o de certificado, sem logs de autentica��o, leitura de arquivos ou URLs. Mensagens recebem ID est�vel por ocorr�ncia. SMTP **n�o oferece a idempot�ncia do Resend**: uma falha amb�gua pode ocorrer depois da aceita��o. Por isso falhas de envio Gmail s�o encerradas, sem novas tentativas autom�ticas. Uma queda do processo depois da aceita��o ainda pode gerar duplicidade quando o lease expira. `sent` significa aceito pelo servidor, n�o entregue/lido. Resend continua opcional, sem fallback autom�tico que misture remetentes.
+
+### Resend: dom�nio verificado
+
 O envio está integrado ao Resend, mas permanece indisponível na interface enquanto as variáveis abaixo estiverem ausentes. Não há conta Resend ou domínio criado automaticamente. É preciso:
 
 1. Criar uma conta Resend.

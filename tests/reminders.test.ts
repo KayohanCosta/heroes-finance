@@ -55,3 +55,17 @@ test('formulário reconhece título, amanhã e horário sem prefixo e sem LLM',(
  assert.equal(parseReminderMessage('Tomar venvanse amanhã às 28:00',now),null);
  assert.equal(parseReminderMessage('Beber água hoje às 8h',now)?.startDate,'2026-10-06');
 });
+
+test('Gmail exige senha de app, fixa TLS e fecha transporte sem expor erros',async()=>{
+ const {gmailOptions,sendGmailReminder}=await import('../server/reminder-gmail.js');
+ const env={GMAIL_USER:'sender@gmail.com',GMAIL_APP_PASSWORD:'abcdefghijklmnop'};
+ assert.equal(gmailOptions(env).secure,true);assert.equal(gmailOptions(env).tls.rejectUnauthorized,true);
+ assert.throws(()=>gmailOptions({...env,GMAIL_APP_PASSWORD:'normal-password'}));
+ let closed=0;const mails:Record<string,unknown>[]=[];
+ const factory=()=>({sendMail:async(mail:Record<string,unknown>)=>{mails.push(mail);return {accepted:['a@example.test']};},close:()=>{closed++;}});
+ const payload={from:'other@example.test',to:['a@example.test'],subject:'Discreto',text:'Lembrete'};
+ assert.equal(await sendGmailReminder('job',payload,factory,env),await sendGmailReminder('job',payload,factory,env));
+ assert.equal(mails[0].from,'Heroes Finance <sender@gmail.com>');assert.equal(closed,2);
+ await assert.rejects(()=>sendGmailReminder('job',payload,()=>({sendMail:async()=>{throw new Error('secret smtp response');},close:()=>{closed++;}}),env),e=>e instanceof Error&&!e.message.includes('secret'));
+ assert.equal(closed,3);
+});

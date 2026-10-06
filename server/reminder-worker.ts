@@ -1,6 +1,6 @@
 import type {SupabaseClient} from '@supabase/supabase-js';
 import {nextOccurrence,reminderSchema,type ScheduledReminder} from '../src/reminders.js';
-import {emailReady,emailPayload,sendReminderEmail} from './reminder-mail.js';
+import {emailReady,emailPayload,sendReminderEmail,emailProvider} from './reminder-mail.js';
 
 export async function runReminders(db:SupabaseClient){
  const now=new Date(),deadline=Date.now()+40000;
@@ -20,7 +20,7 @@ export async function runReminders(db:SupabaseClient){
   const finish=(patch:Record<string,unknown>)=>db.from('reminder_deliveries').update(patch).eq('id',job.id).eq('lease_token',job.lease_token);
   if(!current.data){const result=await finish({status:'canceled'});if(result.error)throw result.error;continue;}
   try{const providerId=await sendReminderEmail(job.id,job.payload);const result=await finish({status:'sent',provider_id:providerId,last_error:null});if(result.error)throw result.error;sent++;}
-  catch(e){const result=await finish({status:job.attempts>=6?'failed':'pending',retry_at:new Date(Date.now()+Math.min(60,2**job.attempts)*60000).toISOString(),last_error:e instanceof Error?e.message:'Falha no envio'});if(result.error)throw result.error;failed++;}
+  catch(e){const result=await finish({status:emailProvider()==='gmail'||job.attempts>=6?'failed':'pending',retry_at:new Date(Date.now()+Math.min(60,2**job.attempts)*60000).toISOString(),last_error:e instanceof Error?e.message:'Falha no envio'});if(result.error)throw result.error;failed++;}
  }
  return {claimed,sent,failed,emailConfigured:emailReady()};
 }
