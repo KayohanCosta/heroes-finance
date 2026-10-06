@@ -46,3 +46,12 @@ test('repetir envio usa a mesma chave de idempotência e falhas não são sucess
  await sendReminderEmail('occurrence-1',payload,fake);await sendReminderEmail('occurrence-1',payload,fake);assert.deepEqual(headers,['heroes-reminder/occurrence-1','heroes-reminder/occurrence-1']);
  await assert.rejects(()=>sendReminderEmail('occurrence-1',payload,(async()=>new Response('',{status:429})) as typeof fetch),/HTTP 429/);
 });
+
+test('formulário reconhece título, amanhã e horário sem prefixo e sem LLM',()=>{
+ const now=new Date('2026-10-06T23:30:00-03:00');
+ assert.deepEqual(parseReminderMessage('Tomar venvanse amanhã as 8:00',now),{...base,title:'Tomar venvanse',recurrence:'once',startDate:'2026-10-07'});
+ assert.equal(parseReminderMessage('Beber água todos os dias às 09:30',now)?.recurrence,'daily');
+ assert.equal(parseReminderMessage('Tomar venvanse amanhã às 8:',now),null);
+ assert.equal(parseReminderMessage('Tomar venvanse amanhã às 28:00',now),null);
+ assert.equal(parseReminderMessage('Beber água hoje às 8h',now)?.startDate,'2026-10-06');
+});

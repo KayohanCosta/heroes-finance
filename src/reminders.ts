@@ -50,7 +50,7 @@ export function appOccurrences(rows:ScheduledReminder[],owner:Owner,now=new Date
 export function scheduleLabel(r:ReminderInput){return (r.recurrence==='once'?r.startDate.split('-').reverse().join('/'):r.recurrence==='daily'?'Todos os dias':r.recurrence==='monthly'?`Todo mês · dia ${Number(r.startDate.slice(-2))}`:r.weekdays.slice().sort().map(d=>['','Seg','Ter','Qua','Qui','Sex','Sáb','Dom'][d]).join(', '))+` às ${r.time}`;}
 export function parseReminderMessage(message:string,now=new Date()):ReminderInput|null {
  const normalized=message.trim().replace(/[.!?]+$/,'');
- const match=normalized.match(/^(?:me\s+lembrar\s+(?:de|para)|(?:me\s+)?lembre(?:-me)?\s+(?:de|para)|criar\s+lembrete\s+(?:de|para))\s+(.+?)\s+(todo\s+dia|todos\s+os\s+dias|diariamente|amanhã|amanha|hoje|dia\s+\d{1,2}\/\d{1,2}\/\d{4})\s+(?:às|as|a)\s+(\d{1,2})(?::(\d{2})|h(?:(\d{2}))?)?(?:\s+(?:pelo|por|no|via)\s+(app|aplicativo|e-?mail|app\s+e\s+e-?mail))?$/i);
+ const match=normalized.match(/^(?:me\s+lembrar\s+(?:de|para)|(?:me\s+)?lembre(?:-me)?\s+(?:de|para)|criar\s+lembrete\s+(?:de|para))?\s*(.+?)\s+(todo\s+dia|todos\s+os\s+dias|diariamente|amanhã|amanha|hoje|dia\s+\d{1,2}\/\d{1,2}\/\d{4})\s+(?:às|as|a)\s+(\d{1,2})(?::(\d{2})|h(?:(\d{2}))?)?(?:\s+(?:pelo|por|no|via)\s+(app|aplicativo|e-?mail|app\s+e\s+e-?mail))?$/i);
  if(!match)return null;
  const trigger=match[2].toLowerCase(),daily=/todo|diariamente/.test(trigger),date=localDate(now);
  let startDate=/amanh/.test(trigger)?addDays(date,1):date;
