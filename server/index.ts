@@ -1,3 +1,4 @@
+import {installSettings} from './settings.js';
 import {reminderSchema,nextOccurrence,type ScheduledReminder} from '../src/reminders.js';
 import {emailReady} from './reminder-mail.js';
 import {runReminders} from './reminder-worker.js';
@@ -17,7 +18,7 @@ import {entrySchema,fixedSchema,ownerSchema,select,summary,today,money,type Entr
 const apiKey=process.env.OPENROUTER_API_KEY||process.env.OPENAI_API_KEY;
 const aiEndpoint=process.env.OPENROUTER_API_KEY?'https://openrouter.ai/api/v1/chat/completions':'https://api.openai.com/v1/chat/completions';
 const aiModel=process.env.OPENROUTER_API_KEY?(process.env.OPENROUTER_MODEL||'nvidia/nemotron-3.5-lightning:free'):(process.env.OPENAI_MODEL||'gpt-4.1-mini');
-const app=express();app.use(express.json({limit:'32kb'}));
+const app=express();app.use(express.json({limit:'64kb'}));
 const db=process.env.SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY?createClient(process.env.SUPABASE_URL,process.env.SUPABASE_SERVICE_ROLE_KEY):null;
 app.post('/api/internal/reminders/run',async(req,res)=>{
  const expected=process.env.REMINDER_CRON_SECRET||'',given=req.get('Authorization')?.replace(/^Bearer /,'')||'';
@@ -26,6 +27,7 @@ app.post('/api/internal/reminders/run',async(req,res)=>{
  try{res.json(await runReminders(db));}catch{res.status(503).json({error:'Não foi possível processar os lembretes.'});}
 });
 await installAuth(app,db);
+installSettings(app,db);
 type State={transactions:Entry[];fixed:Fixed[];loans:Loan[];payments:Payment[];debts:Debt[];reminders:ScheduledReminder[]};let state:State={transactions:[],fixed:[],loans:[],payments:[],debts:[],reminders:[]};
 if(!db){await mkdir('data',{recursive:true});try{state=JSON.parse(await readFile('data/finance.json','utf8'));}catch(e:any){if(e.code!=='ENOENT')throw e;}}
 state.reminders??=[];state.debts??=[];state.loans??=[];state.payments??=[];

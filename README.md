@@ -129,3 +129,5 @@ Consulte [instalação, biometria e lembretes](docs/ANDROID.md). O workflow APK 
 
 Cadastre horários e repetições na aba Lembretes ou prepare uma proposta pelo Heroes Agent. Há notificações locais no Android e integração de e-mail com Resend. O e-mail exige chave e remetente de domínio verificado; a interface informa quando a configuração está pendente. Veja [uso, configuração, privacidade e agendamento](docs/REMINDERS.md).
 
+
+Configurações de perfil, privacidade, dashboard e Android: [guia de configurações](docs/SETTINGS.md).
