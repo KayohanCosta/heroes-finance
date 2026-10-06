@@ -32,6 +32,12 @@ public class MainActivity extends FragmentActivity {
   WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);
   s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
   CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
+  web.setWebChromeClient(new WebChromeClient(){
+   @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){
+    if(!trusted(url)){result.cancel();return true;}
+    new android.app.AlertDialog.Builder(MainActivity.this).setTitle("Heroes Finance").setMessage(message).setPositiveButton("Confirmar",(dialog,which)->result.confirm()).setNegativeButton("Cancelar",(dialog,which)->result.cancel()).setOnCancelListener(dialog->result.cancel()).show();return true;
+   }
+  });
   web.setWebViewClient(new WebViewClient(){
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !trusted(r.getUrl().toString());}
    @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexão. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
