@@ -24,7 +24,7 @@ public class MainActivity extends FragmentActivity {
  private ValueCallback<android.net.Uri[]> photoCallback;
  private boolean disableAfterAuth=false;
  private final androidx.activity.result.ActivityResultLauncher<String> notificationPermission=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),granted->{publishDeviceState();Toast.makeText(this,granted?"Notificações permitidas. Use Testar notificação para confirmar.":"Notificações não autorizadas. Ative nas configurações do Android.",Toast.LENGTH_LONG).show();});
- private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> notificationSettings=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),result->publishDeviceState());
+ private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> notificationSettings=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),result->{try{ReminderScheduler.replace(this,new JSONArray(getSharedPreferences(ReminderScheduler.PREF,0).getString("dates","[]")));}catch(JSONException ignored){}publishDeviceState();});
  private boolean notificationsEnabled(){
   if(!androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled())return false;
   android.app.NotificationChannel channel=((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).getNotificationChannel("payments");
@@ -50,7 +50,7 @@ public class MainActivity extends FragmentActivity {
  @Override public void onCreate(Bundle state){
   super.onCreate(state);
   if(Build.VERSION.SDK_INT>=31)getSplashScreen().setOnExitAnimationListener(view->view.remove());
-  getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
+
   getWindow().setStatusBarColor(Color.BLACK);
   getWindow().setNavigationBarColor(Color.BLACK);
   root=new FrameLayout(this); setContentView(root);updates=new AppUpdates(this);
@@ -82,10 +82,12 @@ public class MainActivity extends FragmentActivity {
     if(!main||!URL.equals(origin.toString())||!trusted(v.getUrl()))return;
     try{
      JSONObject data=new JSONObject(message.getData());String action=data.optString("action");
-     if(action.equals("syncReminders")){ReminderScheduler.replace(this,data.getJSONArray("items"));getPreferences(0).edit().putBoolean("reminders_v2",true).apply();}
+     if(action.equals("syncReminders")){ReminderScheduler.replace(this,data.getJSONArray("items"));getPreferences(0).edit().putBoolean("reminders_v2",true).apply();publishDeviceState();}
      if(action.equals("sync")&&!getPreferences(0).getBoolean("reminders_v2",false)) ReminderScheduler.replace(this,data.getJSONArray("dates"));
      if(action.equals("clear")){ReminderScheduler.replace(this,new JSONArray());((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();}
      if(action.equals("notifications"))requestNotifications();
+     if(action.equals("exactAlarms")){if(Build.VERSION.SDK_INT>=31&&!((android.app.AlarmManager)getSystemService(ALARM_SERVICE)).canScheduleExactAlarms()){android.content.Intent intent=new android.content.Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,android.net.Uri.parse("package:"+getPackageName()));notificationSettings.launch(intent);}else{publishDeviceState();Toast.makeText(this,"Horários precisos já estão permitidos.",Toast.LENGTH_LONG).show();}}
+     if(action.equals("testScheduledNotification")){if(!notificationsEnabled()){Toast.makeText(this,"Permita as notificações antes do teste.",Toast.LENGTH_LONG).show();}else{ReminderScheduler.test(this);Toast.makeText(this,"Teste agendado para 30 segundos. Pode colocar o app em segundo plano.",Toast.LENGTH_LONG).show();}publishDeviceState();}
      if(action.equals("testNotification")){if(notificationsEnabled()){new ReminderReceiver().onReceive(this,new android.content.Intent().putExtra("title","Teste confirmado: o Heroes Finance pode enviar notificações neste aparelho.").putExtra("notificationId",900001));Toast.makeText(this,"Notificação de teste enviada. Confira a central de notificações.",Toast.LENGTH_LONG).show();}else Toast.makeText(this,"Ative as notificações antes de testar.",Toast.LENGTH_LONG).show();publishDeviceState();}
      if(action.equals("biometry")) authenticate(true);
      if(action.equals("biometryOff")){disableAfterAuth=true;authenticate(false);}
@@ -114,7 +116,9 @@ public class MainActivity extends FragmentActivity {
  private void publishDeviceState(){
   if(web==null||!trusted(web.getUrl()))return;
   boolean notifications=notificationsEnabled();
-  web.evaluateJavascript("window.dispatchEvent(new CustomEvent('heroes-device-state',{detail:{notifications:"+notifications+",biometry:"+enabled()+",version:\""+BuildConfig.VERSION_NAME+"\",checkedAt:"+System.currentTimeMillis()+"}}))",null);
+  boolean exact=Build.VERSION.SDK_INT<31||((android.app.AlarmManager)getSystemService(ALARM_SERVICE)).canScheduleExactAlarms();
+  int scheduled=0;try{JSONArray dates=new JSONArray(getSharedPreferences(ReminderScheduler.PREF,0).getString("dates","[]"));for(int i=0;i<dates.length();i++)if(java.time.Instant.parse(dates.getJSONObject(i).getString("at")).toEpochMilli()>System.currentTimeMillis())scheduled++;}catch(Exception ignored){}
+  web.evaluateJavascript("window.dispatchEvent(new CustomEvent('heroes-device-state',{detail:{notifications:"+notifications+",biometry:"+enabled()+",exactAlarms:"+exact+",scheduled:"+scheduled+",version:\""+BuildConfig.VERSION_NAME+"\",checkedAt:"+System.currentTimeMillis()+"}}))",null);
  }
  @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){super.onRequestPermissionsResult(requestCode,permissions,results);publishDeviceState();}
  private boolean trusted(String url){if(url==null)return false;android.net.Uri u=android.net.Uri.parse(url);return "https".equals(u.getScheme())&&"heroesfinance.vercel.app".equals(u.getHost())&&(u.getPort()==-1||u.getPort()==443);}

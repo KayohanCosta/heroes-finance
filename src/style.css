@@ -122,3 +122,9 @@ html[data-theme=light] .login-card:before{background:conic-gradient(from var(--l
 }
 @keyframes mobile-nav-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.app .top-tabs,.app .top-tabs button,.heroes-quick{animation:none;transition:none}}
+@media(max-width:700px){
+ .app .top-tabs,.app .top-tabs button,.app .top-tabs button *{-webkit-tap-highlight-color:transparent}
+ .app .top-tabs button:active,.app .top-tabs button:focus-visible{background:#d9ab5a15;border-color:#d9ab5a20;color:#e8b56a}
+ .app .top-tabs button:active .sidebar-icon,.app .top-tabs button:focus-visible .sidebar-icon{color:currentColor}
+ html[data-theme=light] .app .top-tabs button:active,html[data-theme=light] .app .top-tabs button:focus-visible{background:#be934b14;border-color:#be934b20;color:#926225}
+}

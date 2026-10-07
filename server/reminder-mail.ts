@@ -5,8 +5,7 @@ export function emailPayload(owner:Owner,title:string,hide:boolean,due:string,en
  const to=owner==='Kayohan'?env.KAYOHAN_EMAIL:env.ARIELLE_EMAIL;
  const from=emailProvider(env)==='gmail'?`Heroes Finance <${env.GMAIL_USER}>`:env.REMINDER_FROM;
  if(!to||!from)throw new Error('E-mail não configurado.');
- const date=new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'}).format(new Date(due));
- return {from,to:[to],subject:hide?'Heroes Finance · seu lembrete':`Heroes Finance · ${title}`,text:`${hide?'Você tem um lembrete programado. Abra o aplicativo para ver os detalhes.':title}\n\nProgramado para ${date} (Brasília).\n\nAcesse https://heroesfinance.vercel.app para editar ou pausar seus lembretes.`};
+ return {from,to:[to],subject:title,text:title};
 }
 export async function sendReminderEmail(id:string,payload:ReturnType<typeof emailPayload>,fetcher:typeof fetch=fetch){
  if(emailProvider()==='gmail'){const {sendGmailReminder}=await import('./reminder-gmail.js');return sendGmailReminder(id,payload);}

@@ -25,20 +25,20 @@ test('validação rejeita owner, destinatário arbitrário e lembrete sem canal'
  assert.equal(reminderSchema.safeParse({...base,app:false,email:false}).success,false);
  assert.equal(reminderSchema.safeParse({...base,recurrence:'weekly'}).success,false);
 });
-test('Android agenda somente o owner ativo e preserva conteúdo discreto',()=>{
+test('Android agenda somente o owner ativo e envia apenas o título',()=>{
  const row:ScheduledReminder={...base,id:'a',revision:'r',owner:'Kayohan',nextAt:null};
  const items=appOccurrences([row,{...row,id:'b',owner:'Arielle'},{...row,id:'c',enabled:false},{...row,id:'d',app:false,email:true}],'Kayohan',new Date('2026-10-06T10:00:00Z'),2);
- assert.equal(items.length,2);assert.ok(items.every(i=>i.id.startsWith('a:')&&!i.title.includes('água')));
+ assert.equal(items.length,2);assert.ok(items.every(i=>i.id.startsWith('a:')&&i.title==='Beber água'));
 });
 test('agente prepara proposta de lembrete vinculada ao perfil ativo',async()=>{
  const calls:unknown[][]=[];
  await quickAgent('Arielle','Me lembrar de beber água todo dia às 8:00',async(...args)=>{calls.push(args);return {proposal:{target:'reminders'}};});
  assert.equal(calls[0][0],'Arielle');assert.equal(calls[0][1],'createReminder');
 });
-test('e-mail usa destinatário do owner e omite conteúdo privado',()=>{
+test('e-mail usa destinatário do owner e mostra somente o título',()=>{
  const env={KAYOHAN_EMAIL:'k@example.test',ARIELLE_EMAIL:'a@example.test',REMINDER_FROM:'Heroes <avisos@example.test>'};
  const payload=emailPayload('Arielle','conteúdo privado',true,'2026-10-06T11:00:00Z',env);
- assert.deepEqual(payload.to,['a@example.test']);assert.ok(!JSON.stringify(payload).includes('conteúdo privado'));
+ assert.deepEqual(payload.to,['a@example.test']);assert.equal(payload.subject,'conteúdo privado');assert.equal(payload.text,'conteúdo privado');
 });
 test('repetir envio usa a mesma chave de idempotência e falhas não são sucesso',async()=>{
  const headers:string[]=[];const payload={from:'avisos@example.test',to:['a@example.test'],subject:'Lembrete',text:'Discreto'};

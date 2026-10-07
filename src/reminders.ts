@@ -43,7 +43,7 @@ export function appOccurrences(rows:ScheduledReminder[],owner:Owner,now=new Date
  const end=new Date(now.getTime()+days*86400000),items:{at:string;title:string;id:string}[]=[];
  for(const r of rows.filter(r=>r.owner===owner&&r.enabled&&r.app)){
   let at=nextOccurrence(r,now);
-  while(at&&new Date(at)<=end){items.push({at,title:r.hideContent?'Você tem um lembrete. Abra o Heroes Finance.':r.title,id:r.id+':'+at});at=nextOccurrence(r,new Date(at));}
+  while(at&&new Date(at)<=end){items.push({at,title:r.title,id:r.id+':'+at});at=nextOccurrence(r,new Date(at));}
  }
  return items.sort((a,b)=>a.at.localeCompare(b.at)).slice(0,450);
 }

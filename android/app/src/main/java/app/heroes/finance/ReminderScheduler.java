@@ -19,10 +19,21 @@ final class ReminderScheduler {
     String title=item.optString("title","Você tem um lembrete. Abra o Heroes Finance.");if(title.length()>180)title=title.substring(0,180);
     int id=valid.length();Intent broadcast=new Intent(context,ReminderReceiver.class).putExtra("title",title).putExtra("notificationId",id+1);
     PendingIntent pending=PendingIntent.getBroadcast(context,id,broadcast,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
-    alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,time,pending);valid.put(item);
+    schedule(alarms,time,pending);valid.put(item);
    }catch(java.time.DateTimeException|ClassCastException ignored){}
   }
   context.getSharedPreferences(PREF,0).edit().putString("dates",valid.toString()).putInt("count",valid.length()).apply();
+ }
+ private static void schedule(AlarmManager alarms,long time,PendingIntent pending){
+  if(android.os.Build.VERSION.SDK_INT<31||alarms.canScheduleExactAlarms()){
+   try{alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,time,pending);return;}catch(SecurityException ignored){}
+  }
+  alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,time,pending);
+ }
+ static void test(Context context){
+  Intent broadcast=new Intent(context,ReminderReceiver.class).putExtra("title","Teste de lembrete agendado").putExtra("notificationId",900002);
+  PendingIntent pending=PendingIntent.getBroadcast(context,900002,broadcast,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
+  schedule((AlarmManager)context.getSystemService(Context.ALARM_SERVICE),System.currentTimeMillis()+30000,pending);
  }
  private static PendingIntent intent(Context context,int id){return PendingIntent.getBroadcast(context,id,new Intent(context,ReminderReceiver.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);}
 }
