@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {nextOccurrence,parseReminderMessage,reminderSchema,appOccurrences,type ScheduledReminder,type ReminderInput} from '../src/reminders.js';
+import {nextOccurrence,pendingOccurrence,parseReminderMessage,reminderSchema,appOccurrences,type ScheduledReminder,type ReminderInput} from '../src/reminders.js';
 import {emailPayload,sendReminderEmail} from '../server/reminder-mail.js';
 import {quickAgent} from '../server/agent-local.js';
 const base:ReminderInput={title:'Beber água',recurrence:'daily',startDate:'2026-10-06',time:'08:00',weekdays:[],app:true,email:false,hideContent:true,enabled:true};
@@ -68,4 +68,12 @@ test('Gmail exige senha de app, fixa TLS e fecha transporte sem expor erros',asy
  assert.equal(mails[0].from,'Heroes Finance <sender@gmail.com>');assert.equal(closed,2);
  await assert.rejects(()=>sendGmailReminder('job',payload,()=>({sendMail:async()=>{throw new Error('secret smtp response');},close:()=>{closed++;}}),env),e=>e instanceof Error&&!e.message.includes('secret'));
  assert.equal(closed,3);
+});
+
+test('lembrete vencido permanece pendente até confirmar cada ocorrência',()=>{
+ const row:ScheduledReminder={...base,id:'a',owner:'Kayohan',revision:'r',nextAt:'2026-10-10T11:00:00.000Z'};
+ assert.equal(pendingOccurrence(row),'2026-10-06T11:00:00.000Z');
+ assert.equal(pendingOccurrence({...row,completedThrough:'2026-10-06T11:00:00.000Z'}),'2026-10-07T11:00:00.000Z');
+ assert.equal(pendingOccurrence({...row,recurrence:'once',completedThrough:'2026-10-06T11:00:00.000Z'}),null);
+ assert.equal(pendingOccurrence({...row,enabled:false}),null);
 });

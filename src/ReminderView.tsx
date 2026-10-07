@@ -1,13 +1,15 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {DateField,SelectField} from './Fields';
 import {today,type Owner} from './domain';
-import {scheduleLabel,type ScheduledReminder,type ReminderInput,nextOccurrence,parseReminderMessage} from './reminders';
+import {scheduleLabel,type ScheduledReminder,type ReminderInput,nextOccurrence,pendingOccurrence,parseReminderMessage} from './reminders';
 const inputOf=(r:ScheduledReminder):ReminderInput=>({title:r.title,recurrence:r.recurrence,startDate:r.startDate,time:r.time,weekdays:r.weekdays,app:r.app,email:r.email,hideContent:r.hideContent,enabled:r.enabled});
 const blank=():ReminderInput=>({title:'',recurrence:'daily',startDate:today(),time:'08:00',weekdays:[1,2,3,4,5],app:true,email:false,hideContent:true,enabled:true});
 const nextLabel=(r:ScheduledReminder)=>{const next=nextOccurrence(r);return !r.enabled?'Pausado':next?'Próximo: '+new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'}).format(new Date(next)):'Horário encerrado';};
-export function ReminderPreview({rows,onOpen}:{rows:ScheduledReminder[];onOpen:()=>void}){
- const active=rows.filter(r=>r.enabled&&nextOccurrence(r)).sort((a,b)=>nextOccurrence(a)!.localeCompare(nextOccurrence(b)!));
- return <section className="panel personal-reminders"><div className="panel-title"><h3>Seus lembretes</h3><button onClick={onOpen}>Gerenciar ↗</button></div>{active.length?active.slice(0,3).map(r=><div className="reminder-row" key={r.id}><span className="due-dot amber"/><div><strong>{r.title}</strong><small>{nextLabel(r)}</small></div><span className="tag">{r.app?'APP':''}{r.app&&r.email?' + ':''}{r.email?'E-MAIL':''}</span></div>):<p>Crie um lembrete com horário ou peça ao Heroes Agent.</p>}</section>;
+export function ReminderPreview({rows,onOpen,onComplete}:{rows:ScheduledReminder[];onOpen:()=>void;onComplete:(id:string,at:string)=>Promise<void>}){
+ const [now,setNow]=useState(Date.now()),[busy,setBusy]=useState<string|null>(null),[error,setError]=useState('');
+ useEffect(()=>{const timer=window.setInterval(()=>setNow(Date.now()),30000);return()=>window.clearInterval(timer);},[]);
+ const active=rows.map(r=>({r,at:pendingOccurrence(r)})).filter((item):item is {r:ScheduledReminder;at:string}=>!!item.at).sort((a,b)=>a.at.localeCompare(b.at));
+ return <section className="panel personal-reminders"><div className="panel-title"><h3>Seus lembretes</h3><button onClick={onOpen}>Gerenciar ↗</button></div>{error&&<p className="error" role="alert">{error}</p>}{active.length?active.map(({r,at})=><div className="reminder-row" key={r.id}><span className="due-dot amber"/><div><strong>{r.title}</strong><small>{new Date(at).getTime()<=now?'Pendente · ':'Programado · '}{new Intl.DateTimeFormat('pt-BR',{timeZone:'America/Sao_Paulo',dateStyle:'short',timeStyle:'short'}).format(new Date(at))}</small></div><button className="reminder-done" disabled={!!busy||new Date(at).getTime()>now} onClick={async()=>{setBusy(r.id);setError('');try{await onComplete(r.id,at);}catch(e){setError(e instanceof Error?e.message:'Não foi possível confirmar.');}finally{setBusy(null);}}}>{busy===r.id?'Salvando…':'Marcar como feito'}</button></div>):<p>Nenhum lembrete pendente. Gerencie sua rotina para criar novos avisos.</p>}</section>;
 }
 export function ReminderView({rows,owner,emailConfigured,onChange}:{rows:ScheduledReminder[];owner:Owner;emailConfigured:boolean;onChange:()=>Promise<void>}){
  const [draft,setDraft]=useState<ReminderInput|null>(null),[id,setId]=useState<string>(),[busy,setBusy]=useState(false),[error,setError]=useState(''),[detected,setDetected]=useState('');

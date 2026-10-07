@@ -128,3 +128,6 @@ html[data-theme=light] .login-card:before{background:conic-gradient(from var(--l
  .app .top-tabs button:active .sidebar-icon,.app .top-tabs button:focus-visible .sidebar-icon{color:currentColor}
  html[data-theme=light] .app .top-tabs button:active,html[data-theme=light] .app .top-tabs button:focus-visible{background:#be934b14;border-color:#be934b20;color:#926225}
 }
+
+.reminder-done{flex-shrink:0;min-height:40px;font-size:11px}.personal-reminders .reminder-row>div{min-width:0;flex:1}.personal-reminders .reminder-row strong{overflow-wrap:anywhere}
+@media(max-width:700px){.personal-reminders .reminder-row{flex-wrap:wrap;gap:10px}.personal-reminders .reminder-done{margin-left:auto;min-height:44px}}

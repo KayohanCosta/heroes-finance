@@ -12,7 +12,7 @@ export const reminderSchema=z.object({
  hideContent:z.boolean().default(true),enabled:z.boolean().default(true),
 }).strict().refine(r=>r.app||r.email,'Escolha pelo menos um canal.').refine(r=>r.recurrence!=='weekly'||r.weekdays.length>0,'Selecione os dias da semana.');
 export type ReminderInput=z.infer<typeof reminderSchema>;
-export type ScheduledReminder=ReminderInput&{id:string;owner:Owner;revision:string;nextAt:string|null};
+export type ScheduledReminder=ReminderInput&{id:string;owner:Owner;revision:string;nextAt:string|null;completedThrough?:string|null};
 export const zone='America/Sao_Paulo';
 const parts=(d:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d);
 export function localDate(d:Date){return new Intl.DateTimeFormat('sv-SE',{timeZone:zone}).format(d);}
@@ -57,4 +57,10 @@ export function parseReminderMessage(message:string,now=new Date()):ReminderInpu
  if(trigger.startsWith('dia '))startDate=trigger.slice(4).split('/').reverse().map(s=>s.padStart(2,'0')).join('-');
  const channel=match[6]?.toLowerCase(),input={title:match[1],recurrence:daily?'daily':'once',startDate,time:match[3].padStart(2,'0')+':'+(match[4]||match[5]||'00'),weekdays:[],app:!channel||/app/.test(channel),email:!!channel&&/mail/.test(channel),hideContent:true,enabled:true};
  const result=reminderSchema.safeParse(input);return result.success?result.data:null;
+}
+
+export function pendingOccurrence(r:ScheduledReminder):string|null {
+ if(!r.enabled)return null;
+ const after=r.completedThrough?new Date(r.completedThrough):new Date(new Date(reminderInstant(r.startDate,'00:00')).getTime()-1);
+ return nextOccurrence(r,after);
 }
