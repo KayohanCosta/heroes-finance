@@ -14,7 +14,7 @@ public class ReminderReceiver extends BroadcastReceiver {
   PendingIntent open=PendingIntent.getActivity(c,0,new Intent(c,MainActivity.class),PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
   if(Build.VERSION.SDK_INT>=33&&ContextCompat.checkSelfPermission(c,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED)return;
   String text=i.getStringExtra("title");if(text==null)text="Você tem um lembrete. Abra o Heroes Finance.";
-  NotificationCompat.Builder builder=new NotificationCompat.Builder(c,"payments").setSmallIcon(R.drawable.ic_heroes).setContentTitle(text).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true);
+  NotificationCompat.Builder builder=new NotificationCompat.Builder(c,"payments").setSmallIcon(R.drawable.ic_reminder).setContentTitle(text).setVisibility(NotificationCompat.VISIBILITY_PRIVATE).setContentIntent(open).setAutoCancel(true);
   String reminder=i.getStringExtra("reminderId");
   if(reminder!=null&&reminder.matches("[a-fA-F0-9-]{36}")){
    builder.addAction(new NotificationCompat.Action.Builder(0,"Feito",action(c,i,"complete")).setAuthenticationRequired(true).build());
