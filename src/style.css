@@ -88,3 +88,14 @@ html[data-theme=light] .table td .transaction-actions .icon.red:hover{background
  html[data-theme=light] .fixed-grid .commitment-edit-actions .red{background:#fff3f3;border-color:#edcdd1;color:#a63e4d}
 }
 @media(max-width:700px){.modal.reminder-modal{scrollbar-width:none;scrollbar-gutter:auto}.modal.reminder-modal::-webkit-scrollbar{display:none;width:0;height:0}}
+@media(max-width:700px){.modal.reminder-modal,.modal.reminder-modal>form{scrollbar-width:none;scrollbar-gutter:auto}.modal.reminder-modal::-webkit-scrollbar,.modal.reminder-modal>form::-webkit-scrollbar{display:none;width:0;height:0}}
+html[data-theme=light] .login-screen{background:radial-gradient(ellipse at 50% 10%,#e8dfcf80,transparent 55%),#f1f3f6}
+html[data-theme=light] .login-card{box-shadow:0 24px 70px #26334712,inset 0 1px 0 #fff}
+html[data-theme=light] .login-card form label{color:#46566e}
+html[data-theme=light] .login-card input{background:#f7f9fc;color:#263347;border-color:#d4dce7}
+html[data-theme=light] .login-card input:focus{background:#fff;border-color:#ad8649}
+html[data-theme=light] .login-card>p{color:#64738a}
+html[data-theme=light] .login-card .login-note{border-color:#dfe5ed;color:#64738a}
+html[data-theme=light] .login-card .eyebrow,html[data-theme=light] .login-brand small{color:#926225}
+html[data-theme=light] .login-card .password-toggle{background:transparent;color:#566982;border-color:transparent}
+html[data-theme=light] .login-card:before{background:conic-gradient(from var(--login-border-angle),transparent 0deg,transparent 275deg,#b98b3b60 305deg,#aa7832 337deg,transparent 360deg)}
