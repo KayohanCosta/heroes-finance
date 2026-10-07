@@ -1,0 +1,11 @@
+import {useEffect,useRef,useState} from 'react';
+type Request={message:string;resolve:(accepted:boolean)=>void};
+export function heroesConfirm(message:string):Promise<boolean>{return new Promise(resolve=>window.dispatchEvent(new CustomEvent<Request>('heroes-confirm',{detail:{message,resolve}})));}
+export function HeroesConfirmHost(){
+ const [request,setRequest]=useState<Request|null>(null),pending=useRef<Request|null>(null),dialog=useRef<HTMLElement>(null),previous=useRef<HTMLElement|null>(null);
+ const finish=(accepted:boolean)=>{pending.current?.resolve(accepted);pending.current=null;setRequest(null);previous.current?.focus();};
+ useEffect(()=>{const receive=(event:Event)=>{pending.current?.resolve(false);const next=(event as CustomEvent<Request>).detail;previous.current=document.activeElement as HTMLElement;pending.current=next;setRequest(next);};window.addEventListener('heroes-confirm',receive);return()=>{window.removeEventListener('heroes-confirm',receive);pending.current?.resolve(false);};},[]);
+ useEffect(()=>{if(request)dialog.current?.querySelector<HTMLButtonElement>('button')?.focus();},[request]);
+ if(!request)return null;
+ return <div className="overlay heroes-confirm-overlay" onPointerDown={e=>{if(e.target===e.currentTarget)finish(false);}}><section ref={dialog} className="heroes-confirm-card" role="alertdialog" aria-modal="true" aria-labelledby="heroes-confirm-title" aria-describedby="heroes-confirm-message" onKeyDown={e=>{if(e.key==='Escape'){e.preventDefault();finish(false);}if(e.key==='Tab'){const buttons=Array.from(dialog.current?.querySelectorAll<HTMLButtonElement>('button')||[]);const first=buttons[0],last=buttons[buttons.length-1];if(e.shiftKey&&document.activeElement===first){e.preventDefault();last?.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first?.focus();}}}}><div className="confirm-brand"><img src="/logo-heroes.svg" alt=""/><span>HEROES / CONFIRMAÇÃO</span></div><h2 id="heroes-confirm-title">Confirmar ação</h2><p id="heroes-confirm-message">{request.message}</p><div className="confirm-actions"><button onClick={()=>finish(false)}>Cancelar</button><button className="primary" onClick={()=>finish(true)}>Confirmar</button></div></section></div>;
+}
