@@ -40,3 +40,5 @@ html body .login-screen{font-family:Inter,Arial,sans-serif}.login-screen .login-
 @media(max-width:1100px){.dashboard-workspace{grid-template-columns:1fr}.dashboard-column{display:contents}.dashboard-workspace .personal-reminders{order:1}.dashboard-workspace .payment-preview{order:2}.dashboard-workspace .flow-panel{order:3}.dashboard-workspace .agent{order:4}}
 
 html:not([data-theme=light]) .app :is(td.green,.metric.green h2){color:#8acaa9}html:not([data-theme=light]) .app td.cyan{color:#88cbd1}.app footer .tour-replay{font-family:Inter,Arial,sans-serif;font-size:11px}
+.app .agent-input input,.app .agent-input input:focus,.app .agent-input input:focus-visible{border:0;outline:0;box-shadow:none;background:var(--hf-soft)}.app .agent-input:focus-within{box-shadow:0 2px 0 var(--hf-amber)}
+
