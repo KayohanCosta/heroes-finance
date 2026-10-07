@@ -77,3 +77,13 @@ html[data-theme=light] .table td .transaction-actions .icon.red{background:#fff3
 html[data-theme=light] .table td .transaction-actions .icon:hover{background:#e7edf5}
 html[data-theme=light] .table td .transaction-actions .icon.red:hover{background:#ffe6e9}
 @media(max-width:700px){.table td .transaction-actions .icon{min-height:44px;min-width:68px}.transaction-actions{gap:8px}}
+
+@media(max-width:700px){
+ .fixed-grid .commitment-card-actions{display:flex;flex-direction:column;gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid #29313d}
+ .fixed-grid .commitment-card-actions button{margin:0;min-height:44px;border-radius:9px;font-size:12px}
+ .fixed-grid .commitment-payments{width:100%;text-align:center;padding:12px}
+ .commitment-edit-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+ .fixed-grid .commitment-edit-actions .red{background:#321e26;border-color:#63343e;color:#ed9a9f}
+ html[data-theme=light] .fixed-grid .commitment-card-actions{border-color:#e2e7ef}
+ html[data-theme=light] .fixed-grid .commitment-edit-actions .red{background:#fff3f3;border-color:#edcdd1;color:#a63e4d}
+}
