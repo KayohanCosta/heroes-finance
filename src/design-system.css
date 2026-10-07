@@ -41,4 +41,10 @@ html body .login-screen{font-family:Inter,Arial,sans-serif}.login-screen .login-
 
 html:not([data-theme=light]) .app :is(td.green,.metric.green h2){color:#8acaa9}html:not([data-theme=light]) .app td.cyan{color:#88cbd1}.app footer .tour-replay{font-family:Inter,Arial,sans-serif;font-size:11px}
 .app .agent-input input,.app .agent-input input:focus,.app .agent-input input:focus-visible{border:0;outline:0;box-shadow:none;background:var(--hf-soft)}.app .agent-input:focus-within{box-shadow:0 2px 0 var(--hf-amber)}
+/* Native touch feedback must follow the Heroes palette on every surface. */
+html body *,html body *::before,html body *::after{-webkit-tap-highlight-color:transparent}
+html body :is(button,a,[role=button],[role=tab]),html body :is(button,a,[role=button],[role=tab]) *{-webkit-user-select:none;user-select:none}
+html body :is(button,a,[role=button],[role=tab]):focus{outline:none;box-shadow:none}
+html body :is(button,a,[role=button],[role=tab]):focus-visible{outline:2px solid #bf9450;outline-offset:3px}
+html body ::selection{background:#c89d5440;color:inherit}
 
