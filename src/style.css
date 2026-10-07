@@ -99,3 +99,26 @@ html[data-theme=light] .login-card .login-note{border-color:#dfe5ed;color:#64738
 html[data-theme=light] .login-card .eyebrow,html[data-theme=light] .login-brand small{color:#926225}
 html[data-theme=light] .login-card .password-toggle{background:transparent;color:#566982;border-color:transparent}
 html[data-theme=light] .login-card:before{background:conic-gradient(from var(--login-border-angle),transparent 0deg,transparent 275deg,#b98b3b60 305deg,#aa7832 337deg,transparent 360deg)}
+
+@media(max-width:700px){
+ .app>main{padding-bottom:calc(112px + env(safe-area-inset-bottom))}
+ .app .top-tabs{position:fixed;inset:auto 12px calc(12px + env(safe-area-inset-bottom));width:auto;z-index:8;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;margin:0;padding:7px;border:1px solid #ffffff12;border-radius:22px;background:#111821eb;backdrop-filter:blur(18px);box-shadow:0 10px 36px #0005,inset 0 1px 0 #ffffff08;animation:mobile-nav-enter .35s ease-out}
+ .app .top-tabs button{min-height:58px;padding:8px 2px;border-radius:15px;transition:background .22s ease,color .22s ease,transform .22s ease;position:relative}
+ .app .top-tabs button:active{transform:scale(.94)}
+ .app .top-tabs button span:not(.sidebar-active-mark){font-size:8px;letter-spacing:0;white-space:nowrap}
+ .app .top-tabs button.selected{background:#d9ab5a15;border-color:#d9ab5a20;color:#e8b56a}
+ .app .top-tabs button.selected:after{bottom:4px}
+ .app:has(.overlay) .top-tabs,html[data-mobile-keyboard=true] .app .top-tabs,html[data-mobile-keyboard=true] .heroes-quick{visibility:hidden;pointer-events:none}
+ .heroes-quick{bottom:calc(108px + env(safe-area-inset-bottom));width:54px;height:54px;transition:left .22s ease,top .22s ease}
+ .heroes-quick.dragging{transition:none}
+ .heroes-quick-toggle{touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
+ .heroes-quick.dragging .heroes-quick-toggle{cursor:grabbing;transform:scale(1.06)}
+ .heroes-quick .heroes-quick-menu{position:absolute;bottom:68px;right:0;width:min(304px,calc(100vw - 28px));max-height:calc(50dvh - 40px);overflow:auto;scrollbar-width:none}
+ .heroes-quick-menu::-webkit-scrollbar{display:none}
+ .heroes-quick.dock-left .heroes-quick-menu{right:auto;left:0}
+ .heroes-quick.menu-below .heroes-quick-menu{bottom:auto;top:68px}
+ html[data-theme=light] .app .top-tabs{background:#fffffff0;border-color:#dfe5ed;box-shadow:0 10px 36px #2633471c,inset 0 1px 0 #fff}
+ html[data-theme=light] .app .top-tabs button.selected{background:#be934b14;color:#926225;border-color:#be934b20}
+}
+@keyframes mobile-nav-enter{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.app .top-tabs,.app .top-tabs button,.heroes-quick{animation:none;transition:none}}
