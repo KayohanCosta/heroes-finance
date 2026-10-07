@@ -1,5 +1,3 @@
-Aqui está o documento corrigido, com todos os problemas de codificação de caracteres e acentuação resolvidos:
-
 # Lembretes programados
 
 ## Uso
