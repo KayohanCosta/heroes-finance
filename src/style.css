@@ -66,3 +66,14 @@ html[data-theme=light] .heroes-quick-menu .quick-arrow{color:#8c6c38}
 
 .header-actions{display:flex;align-items:center;gap:10px}.theme-toggle{display:grid;place-items:center;width:42px;height:42px;padding:10px;border-radius:12px;background:#151c25;color:#e8bc78;border:1px solid #2d3541;flex-shrink:0}.theme-toggle svg{width:20px;height:20px}.theme-toggle:disabled{opacity:.5}@media(max-width:700px){.header-actions{gap:8px}.theme-toggle{width:36px;height:36px;padding:8px;border-radius:10px}}
 html[data-theme=light] .theme-toggle{color:#526784;background:#ffffffcc;border-color:#dce3ed}
+
+.transaction-actions{display:flex;align-items:center;gap:8px}
+.table td .transaction-actions .icon{display:inline-flex;align-items:center;justify-content:center;min-height:40px;min-width:66px;padding:10px 12px;border:1px solid #303b4a;border-radius:9px;background:#18212c;color:#b9c9dc;font-size:11px;font-weight:500;white-space:nowrap}
+.table td .transaction-actions .icon.red{color:#ed9a9f;border-color:#63343e;background:#321e26}
+.table td .transaction-actions .icon:hover{background:#253345;border-color:#526a86}
+.table td .transaction-actions .icon.red:hover{background:#482630;border-color:#a85661}
+html[data-theme=light] .table td .transaction-actions .icon{background:#f2f5f9;border-color:#d1dbe7;color:#40536c}
+html[data-theme=light] .table td .transaction-actions .icon.red{background:#fff3f3;border-color:#edcdd1;color:#a63e4d}
+html[data-theme=light] .table td .transaction-actions .icon:hover{background:#e7edf5}
+html[data-theme=light] .table td .transaction-actions .icon.red:hover{background:#ffe6e9}
+@media(max-width:700px){.table td .transaction-actions .icon{min-height:44px;min-width:68px}.transaction-actions{gap:8px}}
