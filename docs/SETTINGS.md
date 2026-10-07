@@ -17,3 +17,11 @@ Foto/nome/preferências acompanham a conta após salvar e recarregar. Permissõe
 Testes reais de API cobrem persistência local, acesso autenticado, isolamento entre owners, rejeição de alteração de owner e de imagem falsa. CI executa compilação web e testes; o workflow Android executa build e lint. Permissão concedida/negada, seleção de foto e biometria precisam ser conferidas no dispositivo real após instalar o APK.
 
 O olho no card Sobra real alterna a preferência de ocultação de valores no Dashboard/Lançamentos e salva na conta. Claro/escuro é aplicado após Salvar alterações e restaurado no login. Perfis anteriores recebem tema escuro por padrão sem migration adicional. O layout de Configurações usa toda a largura disponível do conteúdo.
+
+## Correções em 1.4.2
+
+O tema é aplicado antes da primeira renderização a partir de uma preferência cosmética local, depois confirmado pela conta no servidor. Essa preferência não armazena dados financeiros. A página atual é preservada por perfil na sessão do navegador para voltar de permissões e seletores do Android.
+
+Selecionar ou remover uma foto salva imediatamente o avatar no backend. Outras mudanças ainda não salvas no formulário não são enviadas por essa ação. A imagem é decodificada pelo navegador, recortada e comprimida com redução gradual; formatos inválidos ou grandes demais produzem mensagem de erro sem substituir a foto existente.
+
+O status do aparelho é consultado novamente ao retornar ao app e ao abrir Configurações. A permissão real continua sendo do Android; nenhuma preferência no backend simula uma autorização.

@@ -60,3 +60,7 @@ A primeira migração de um APK de teste para o APK assinado pode exigir desinst
 ### Correção da abertura em 1.4.1
 
 A janela inicial do Android usa fundo preto e ícone transparente, sem o ícone estático sobre fundo cinza. A animação de saída do sistema é removida imediatamente. O Android 12 ou superior ainda cria sua janela inicial obrigatória, mas sua aparência se integra ao fundo preto do vídeo local. O vídeo e o desbloqueio biométrico continuam preservados.
+
+### Correções em 1.4.2
+
+O WebView permite ler URIs de conteúdo concedidas pelo seletor de fotos do Android, mantendo acesso a arquivos desabilitado e navegação restrita ao domínio Heroes. A aparência anterior é usada no fundo do WebView e no desbloqueio. Mudanças de orientação não recriam a Activity. O status de notificações é republicado após permissões, retorno ao app e carregamento da página.

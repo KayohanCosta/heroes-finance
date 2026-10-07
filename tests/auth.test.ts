@@ -25,6 +25,13 @@ test('login, cookies, isolamento de todas as rotas, logout e ativação única',
  assert.equal((await request('Kayohan/settings','PUT',{...profile,theme:'invalid'},cookie)).status,400);
  assert.equal((await request('Kayohan/settings','PUT',{...profile,owner:'Arielle'},cookie)).status,400);
  assert.equal((await request('Kayohan/settings','PUT',{...profile,avatar:'data:image/jpeg;base64,YmFk'},cookie)).status,400);
+ const avatar='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aEuoAAAAASUVORK5CYII=';
+ const photoProfile={...profile,avatar};
+ assert.equal((await request('Kayohan/settings','PUT',photoProfile,cookie)).status,200);
+ assert.equal((await(await request('Kayohan/settings','GET',undefined,cookie)).json()).settings.avatar,avatar);
+ assert.equal((await(await request('Arielle/settings','GET',undefined,arCookie)).json()).settings.avatar,'');
+ assert.deepEqual(JSON.parse(await readFile('data/settings.json','utf8')).Kayohan,photoProfile);
+ assert.equal((await request('Kayohan/settings','PUT',profile,cookie)).status,200);
  assert.deepEqual(JSON.parse(await readFile('data/settings.json','utf8')).Kayohan,profile);
  assert.equal((await request('auth/logout' ,'POST',{},cookie)).status,200);assert.equal((await request('Kayohan/transactions','GET',undefined,cookie)).status,401);
  }finally{if(server)await new Promise<void>(resolve=>server.close(resolve));process.chdir(original);if(kay===undefined)delete process.env.KAYOHAN_EMAIL;else process.env.KAYOHAN_EMAIL=kay;if(ari===undefined)delete process.env.ARIELLE_EMAIL;else process.env.ARIELLE_EMAIL=ari;await rm(folder,{recursive:true,force:true});}

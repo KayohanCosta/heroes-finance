@@ -37,9 +37,9 @@ public class MainActivity extends FragmentActivity {
   root=new FrameLayout(this); setContentView(root);updates=new AppUpdates(this);
   androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root,(v,insets)->{androidx.core.graphics.Insets bars=insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars()|androidx.core.view.WindowInsetsCompat.Type.ime());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);return insets;});
   web=new WebView(this);root.addView(web);
-  web.setBackgroundColor(Color.rgb(9,13,18));
+  web.setBackgroundColor(getPreferences(0).getString("theme","dark").equals("light")?Color.rgb(241,243,246):Color.rgb(10,12,16));
   WebSettings s=web.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);
-  s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+  s.setAllowFileAccess(false);s.setAllowContentAccess(true);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
   CookieManager.getInstance().setAcceptThirdPartyCookies(web,false);
   web.setWebChromeClient(new WebChromeClient(){
    @Override public boolean onShowFileChooser(WebView v,ValueCallback<android.net.Uri[]> callback,FileChooserParams params){
@@ -54,6 +54,7 @@ public class MainActivity extends FragmentActivity {
    }
   });
   web.setWebViewClient(new WebViewClient(){
+   @Override public void onPageFinished(WebView v,String url){if(trusted(url))publishDeviceState();}
    @Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return !trusted(r.getUrl().toString());}
    @Override public void onReceivedError(WebView v,WebResourceRequest r,WebResourceError e){if(r.isForMainFrame())Toast.makeText(MainActivity.this,"Sem conexão. Verifique a internet e abra o app novamente.",Toast.LENGTH_LONG).show();}
   });
@@ -65,11 +66,12 @@ public class MainActivity extends FragmentActivity {
      if(action.equals("syncReminders")){ReminderScheduler.replace(this,data.getJSONArray("items"));getPreferences(0).edit().putBoolean("reminders_v2",true).apply();}
      if(action.equals("sync")&&!getPreferences(0).getBoolean("reminders_v2",false)) ReminderScheduler.replace(this,data.getJSONArray("dates"));
      if(action.equals("clear")){ReminderScheduler.replace(this,new JSONArray());((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();}
-     if(action.equals("notifications")){if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},1);}
+     if(action.equals("notifications")){if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},1);else publishDeviceState();}
      if(action.equals("biometry")) authenticate(true);
      if(action.equals("biometryOff")){disableAfterAuth=true;authenticate(false);}
      if(action.equals("deviceState"))publishDeviceState();
      if(action.equals("checkUpdate"))updates.check(true);
+     if(action.equals("appearance")){String theme=data.optString("theme");if(theme.equals("light")||theme.equals("dark")){getPreferences(0).edit().putString("theme",theme).apply();web.setBackgroundColor(theme.equals("light")?Color.rgb(241,243,246):Color.rgb(10,12,16));}}
      if(action.equals("notificationSettings")){android.content.Intent settings=new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());startActivity(settings);}
     }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
    });
@@ -102,15 +104,17 @@ public class MainActivity extends FragmentActivity {
  private void showShield(){
   unlocked=false;web.setVisibility(View.INVISIBLE);
   if(shield!=null)return;
-  shield=new LinearLayout(this);shield.setOrientation(LinearLayout.VERTICAL);shield.setGravity(Gravity.CENTER);shield.setBackgroundColor(Color.rgb(9,13,18));shield.setPadding(dp(28),dp(24),dp(28),dp(24));
+  boolean light=getPreferences(0).getString("theme","dark").equals("light");
+  int textColor=light?Color.rgb(38,51,71):Color.rgb(237,241,247),mutedColor=light?Color.rgb(96,113,137):Color.rgb(148,162,181);
+  shield=new LinearLayout(this);shield.setOrientation(LinearLayout.VERTICAL);shield.setGravity(Gravity.CENTER);shield.setBackgroundColor(light?Color.rgb(241,243,246):Color.rgb(9,13,18));shield.setPadding(dp(28),dp(24),dp(28),dp(24));
   ImageView logo=new ImageView(this);logo.setImageResource(app.heroes.finance.R.drawable.ic_heroes);logo.setBackground(surface(Color.BLACK,20));logo.setPadding(dp(8),dp(8),dp(8),dp(8));shield.addView(logo,new LinearLayout.LayoutParams(dp(76),dp(76)));
   TextView brand=shieldText("HEROES FINANCE",13,Color.rgb(231,185,111));brand.setLetterSpacing(.16f);shield.addView(brand);
-  LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setGravity(Gravity.CENTER);card.setPadding(dp(24),dp(28),dp(24),dp(28));card.setBackground(surface(Color.rgb(18,24,32),24));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.topMargin=dp(28);shield.addView(card,cp);
-  TextView title=shieldText("Seu dinheiro, protegido.",25,Color.rgb(237,241,247));title.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);card.addView(title);
-  card.addView(shieldText("Confirme sua identidade para acessar seu workspace.",14,Color.rgb(148,162,181)));
+  LinearLayout card=new LinearLayout(this);card.setOrientation(LinearLayout.VERTICAL);card.setGravity(Gravity.CENTER);card.setPadding(dp(24),dp(28),dp(24),dp(28));card.setBackground(surface(light?Color.WHITE:Color.rgb(18,24,32),24));LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(-1,-2);cp.topMargin=dp(28);shield.addView(card,cp);
+  TextView title=shieldText("Seu dinheiro, protegido.",25,textColor);title.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);card.addView(title);
+  card.addView(shieldText("Confirme sua identidade para acessar seu workspace.",14,mutedColor));
   Button button=new Button(this);button.setAllCaps(false);button.setText("Desbloquear");button.setTextSize(15);button.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);button.setTextColor(Color.rgb(31,24,13));button.setBackground(surface(Color.rgb(233,185,108),12));button.setOnClickListener(v->authenticate(false));LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(-1,dp(54));bp.topMargin=dp(24);bp.bottomMargin=dp(12);card.addView(button,bp);
-  card.addView(shieldText(Build.VERSION.SDK_INT>=30?"Use sua biometria ou o bloqueio do aparelho.":"Use sua biometria cadastrada no aparelho.",12,Color.rgb(148,162,181)));
-  TextView privacy=shieldText("Sua biometria permanece no dispositivo.",11,Color.rgb(111,127,147));LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,-2);pp.topMargin=dp(24);shield.addView(privacy,pp);
+  card.addView(shieldText(Build.VERSION.SDK_INT>=30?"Use sua biometria ou o bloqueio do aparelho.":"Use sua biometria cadastrada no aparelho.",12,mutedColor));
+  TextView privacy=shieldText("Sua biometria permanece no dispositivo.",11,mutedColor);LinearLayout.LayoutParams pp=new LinearLayout.LayoutParams(-1,-2);pp.topMargin=dp(24);shield.addView(privacy,pp);
   root.addView(shield,new FrameLayout.LayoutParams(-1,-1));
  }
  private void authenticate(boolean enable){
@@ -128,7 +132,7 @@ public class MainActivity extends FragmentActivity {
   prompt.authenticate(info.build());
  }
  @Override protected void onPause(){if(openingActive)finishOpening(false);if(enabled())showShield();super.onPause();CookieManager.getInstance().flush();}
- @Override protected void onResume(){super.onResume();publishDeviceState();if(!openingActive&&enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}else if(!openingActive&&!enabled())updates.check(false);}
+ @Override protected void onResume(){super.onResume();publishDeviceState();web.postDelayed(()->publishDeviceState(),300);if(!openingActive&&enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}else if(!openingActive&&!enabled())updates.check(false);}
  @Override public void onBackPressed(){if(shield==null&&web.canGoBack())web.goBack();else super.onBackPressed();}
  @Override protected void onDestroy(){openingHandler.removeCallbacksAndMessages(null);if(openingVideo!=null)openingVideo.stopPlayback();if(updates!=null)updates.close();if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web.destroy();super.onDestroy();}
 }

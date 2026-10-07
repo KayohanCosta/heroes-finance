@@ -1,0 +1,2 @@
+// Apply only a cosmetic preference before React or CSS can paint.
+(function(){var theme='dark';try{var stored=localStorage.getItem('heroes-theme-v1');theme=stored==='light'||stored==='dark'?stored:(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');}catch(e){}document.documentElement.dataset.theme=theme;document.documentElement.style.backgroundColor=theme==='light'?'#f1f3f6':'#0a0c10';})();
