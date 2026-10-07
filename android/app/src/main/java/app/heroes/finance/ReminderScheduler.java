@@ -17,7 +17,7 @@ final class ReminderScheduler {
     long time=Instant.parse(item.getString("at")).toEpochMilli();
     if(time<=System.currentTimeMillis())continue;
     String title=item.optString("title","Você tem um lembrete. Abra o Heroes Finance.");if(title.length()>180)title=title.substring(0,180);
-    int id=valid.length();Intent broadcast=new Intent(context,ReminderReceiver.class).putExtra("title",title).putExtra("notificationId",id+1);
+    int id=valid.length();Intent broadcast=new Intent(context,ReminderReceiver.class).putExtra("title",title).putExtra("notificationId",id+1).putExtra("reminderId",item.optString("reminderId")).putExtra("dueAt",item.optString("dueAt")).putExtra("owner",item.optString("owner"));
     PendingIntent pending=PendingIntent.getBroadcast(context,id,broadcast,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
     schedule(alarms,time,pending);valid.put(item);
    }catch(java.time.DateTimeException|ClassCastException ignored){}

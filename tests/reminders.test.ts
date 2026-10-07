@@ -1,3 +1,4 @@
+import {applyReminderAction} from '../server/reminder-actions.js';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {nextOccurrence,pendingOccurrence,parseReminderMessage,reminderSchema,appOccurrences,type ScheduledReminder,type ReminderInput} from '../src/reminders.js';
@@ -76,4 +77,18 @@ test('lembrete vencido permanece pendente até confirmar cada ocorrência',()=>{
  assert.equal(pendingOccurrence({...row,completedThrough:'2026-10-06T11:00:00.000Z'}),'2026-10-07T11:00:00.000Z');
  assert.equal(pendingOccurrence({...row,recurrence:'once',completedThrough:'2026-10-06T11:00:00.000Z'}),null);
  assert.equal(pendingOccurrence({...row,enabled:false}),null);
+});
+
+test('concluir, repetir confirmação, desfazer e adiar preservam ocorrência e histórico',()=>{
+ const now=new Date('2026-10-06T11:01:00Z'),at='2026-10-06T11:00:00.000Z';
+ const row:ScheduledReminder={...base,id:'a',owner:'Kayohan',revision:'r',nextAt:at};
+ const done=applyReminderAction(row,'complete',{at},now);
+ assert.equal(done.completionHistory?.length,1);assert.equal(done.completedThrough,at);
+ assert.equal(applyReminderAction(done,'complete',{at},now).completionHistory?.length,1);
+ const undo=applyReminderAction(done,'undo',{at},now);assert.equal(undo.completedThrough,null);assert.equal(undo.completionHistory?.length,0);
+ const snooze=applyReminderAction(undo,'snooze',{at,until:'2026-10-06T11:11:00Z'},now);assert.equal(snooze.completedThrough,null);assert.equal(snooze.snoozedUntil,'2026-10-06T11:11:00.000Z');
+ assert.ok(appOccurrences([snooze],'Kayohan',now,1).some(i=>i.at==='2026-10-06T11:11:00.000Z'&&i.dueAt===at));
+ assert.throws(()=>applyReminderAction(row,'complete',{at:'2026-10-07T11:00:00Z'},now));
+ assert.throws(()=>applyReminderAction(row,'snooze',{at,until:'2026-10-06T10:00:00Z'},now));
+ assert.throws(()=>applyReminderAction(row,'undo',{at},now));
 });

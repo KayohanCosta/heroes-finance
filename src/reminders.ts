@@ -12,7 +12,7 @@ export const reminderSchema=z.object({
  hideContent:z.boolean().default(true),enabled:z.boolean().default(true),
 }).strict().refine(r=>r.app||r.email,'Escolha pelo menos um canal.').refine(r=>r.recurrence!=='weekly'||r.weekdays.length>0,'Selecione os dias da semana.');
 export type ReminderInput=z.infer<typeof reminderSchema>;
-export type ScheduledReminder=ReminderInput&{id:string;owner:Owner;revision:string;nextAt:string|null;completedThrough?:string|null};
+export type ScheduledReminder=ReminderInput&{id:string;owner:Owner;revision:string;nextAt:string|null;completedThrough?:string|null;snoozedAt?:string|null;snoozedUntil?:string|null;completionHistory?:{at:string;completedAt:string;title:string;previous:string|null}[]};
 export const zone='America/Sao_Paulo';
 const parts=(d:Date)=>new Intl.DateTimeFormat('sv-SE',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(d);
 export function localDate(d:Date){return new Intl.DateTimeFormat('sv-SE',{timeZone:zone}).format(d);}
@@ -40,10 +40,11 @@ export function nextOccurrence(r:ReminderInput,after:Date=new Date()):string|nul
  return null;
 }
 export function appOccurrences(rows:ScheduledReminder[],owner:Owner,now=new Date(),days=60){
- const end=new Date(now.getTime()+days*86400000),items:{at:string;title:string;id:string}[]=[];
+ const end=new Date(now.getTime()+days*86400000),items:{at:string;title:string;id:string;reminderId:string;dueAt:string;owner:Owner}[]=[];
  for(const r of rows.filter(r=>r.owner===owner&&r.enabled&&r.app)){
+  if(r.snoozedUntil&&r.snoozedAt&&new Date(r.snoozedUntil)>now)items.push({at:r.snoozedUntil,title:r.title,id:r.id+':'+r.snoozedAt,reminderId:r.id,dueAt:r.snoozedAt,owner});
   let at=nextOccurrence(r,now);
-  while(at&&new Date(at)<=end){items.push({at,title:r.title,id:r.id+':'+at});at=nextOccurrence(r,new Date(at));}
+  while(at&&new Date(at)<=end){if(!r.completedThrough||new Date(at)>new Date(r.completedThrough))items.push({at,title:r.title,id:r.id+':'+at,reminderId:r.id,dueAt:at,owner});at=nextOccurrence(r,new Date(at));}
  }
  return items.sort((a,b)=>a.at.localeCompare(b.at)).slice(0,450);
 }
