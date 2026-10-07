@@ -23,6 +23,25 @@ public class MainActivity extends FragmentActivity {
  private AppUpdates updates;
  private ValueCallback<android.net.Uri[]> photoCallback;
  private boolean disableAfterAuth=false;
+ private final androidx.activity.result.ActivityResultLauncher<String> notificationPermission=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),granted->{publishDeviceState();Toast.makeText(this,granted?"Notificações permitidas. Use Testar notificação para confirmar.":"Notificações não autorizadas. Ative nas configurações do Android.",Toast.LENGTH_LONG).show();});
+ private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> notificationSettings=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),result->publishDeviceState());
+ private boolean notificationsEnabled(){
+  if(!androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled())return false;
+  android.app.NotificationChannel channel=((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).getNotificationChannel("payments");
+  return channel==null||channel.getImportance()!=android.app.NotificationManager.IMPORTANCE_NONE;
+ }
+ private void openNotificationSettings(){
+  android.content.Intent intent=new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+  intent.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());notificationSettings.launch(intent);
+ }
+ private void requestNotifications(){
+  if(notificationsEnabled()){publishDeviceState();Toast.makeText(this,"Notificações já estão permitidas neste aparelho.",Toast.LENGTH_LONG).show();return;}
+  if(Build.VERSION.SDK_INT>=33&&ContextCompat.checkSelfPermission(this,Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED){
+   boolean asked=getPreferences(0).getBoolean("notification_permission_asked",false);
+   if(asked&&!shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)){openNotificationSettings();return;}
+   getPreferences(0).edit().putBoolean("notification_permission_asked",true).apply();notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS);
+  }else openNotificationSettings();
+ }
  private final androidx.activity.result.ActivityResultLauncher<android.content.Intent> photoPicker=registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),result->{if(photoCallback!=null){photoCallback.onReceiveValue(result.getResultCode()==RESULT_OK&&result.getData()!=null&&result.getData().getData()!=null?new android.net.Uri[]{result.getData().getData()}:null);photoCallback=null;}});
  private FrameLayout root;
  private LinearLayout shield;
@@ -66,13 +85,14 @@ public class MainActivity extends FragmentActivity {
      if(action.equals("syncReminders")){ReminderScheduler.replace(this,data.getJSONArray("items"));getPreferences(0).edit().putBoolean("reminders_v2",true).apply();}
      if(action.equals("sync")&&!getPreferences(0).getBoolean("reminders_v2",false)) ReminderScheduler.replace(this,data.getJSONArray("dates"));
      if(action.equals("clear")){ReminderScheduler.replace(this,new JSONArray());((android.app.NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancelAll();}
-     if(action.equals("notifications")){if(Build.VERSION.SDK_INT>=33)requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},1);else publishDeviceState();}
+     if(action.equals("notifications"))requestNotifications();
+     if(action.equals("testNotification")){if(notificationsEnabled()){new ReminderReceiver().onReceive(this,new android.content.Intent().putExtra("title","Teste confirmado: o Heroes Finance pode enviar notificações neste aparelho.").putExtra("notificationId",900001));Toast.makeText(this,"Notificação de teste enviada. Confira a central de notificações.",Toast.LENGTH_LONG).show();}else Toast.makeText(this,"Ative as notificações antes de testar.",Toast.LENGTH_LONG).show();publishDeviceState();}
      if(action.equals("biometry")) authenticate(true);
      if(action.equals("biometryOff")){disableAfterAuth=true;authenticate(false);}
      if(action.equals("deviceState"))publishDeviceState();
      if(action.equals("checkUpdate"))updates.check(true);
      if(action.equals("appearance")){String theme=data.optString("theme");if(theme.equals("light")||theme.equals("dark")){getPreferences(0).edit().putString("theme",theme).apply();web.setBackgroundColor(theme.equals("light")?Color.rgb(241,243,246):Color.rgb(10,12,16));}}
-     if(action.equals("notificationSettings")){android.content.Intent settings=new android.content.Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS);settings.putExtra(android.provider.Settings.EXTRA_APP_PACKAGE,getPackageName());startActivity(settings);}
+     if(action.equals("notificationSettings"))openNotificationSettings();
     }catch(Exception e){Toast.makeText(this,"Não foi possível atualizar os lembretes.",Toast.LENGTH_SHORT).show();}
    });
   }
@@ -93,8 +113,8 @@ public class MainActivity extends FragmentActivity {
  }
  private void publishDeviceState(){
   if(web==null||!trusted(web.getUrl()))return;
-  boolean notifications=androidx.core.app.NotificationManagerCompat.from(this).areNotificationsEnabled();
-  web.evaluateJavascript("window.dispatchEvent(new CustomEvent('heroes-device-state',{detail:{notifications:"+notifications+",biometry:"+enabled()+"}}))",null);
+  boolean notifications=notificationsEnabled();
+  web.evaluateJavascript("window.dispatchEvent(new CustomEvent('heroes-device-state',{detail:{notifications:"+notifications+",biometry:"+enabled()+",version:\""+BuildConfig.VERSION_NAME+"\",checkedAt:"+System.currentTimeMillis()+"}}))",null);
  }
  @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] results){super.onRequestPermissionsResult(requestCode,permissions,results);publishDeviceState();}
  private boolean trusted(String url){if(url==null)return false;android.net.Uri u=android.net.Uri.parse(url);return "https".equals(u.getScheme())&&"heroesfinance.vercel.app".equals(u.getHost())&&(u.getPort()==-1||u.getPort()==443);}
@@ -131,7 +151,8 @@ public class MainActivity extends FragmentActivity {
   if(Build.VERSION.SDK_INT<30)info.setNegativeButtonText("Cancelar");
   prompt.authenticate(info.build());
  }
- @Override protected void onPause(){if(openingActive)finishOpening(false);if(enabled())showShield();super.onPause();CookieManager.getInstance().flush();}
+ @Override protected void onPause(){if(openingActive)finishOpening(false);super.onPause();CookieManager.getInstance().flush();}
+ @Override protected void onStop(){if(enabled()&&!prompting)showShield();super.onStop();}
  @Override protected void onResume(){super.onResume();publishDeviceState();web.postDelayed(()->publishDeviceState(),300);if(!openingActive&&enabled()&&!unlocked&&!prompting){showShield();authenticate(false);}else if(!openingActive&&!enabled())updates.check(false);}
  @Override public void onBackPressed(){if(shield==null&&web.canGoBack())web.goBack();else super.onBackPressed();}
  @Override protected void onDestroy(){openingHandler.removeCallbacksAndMessages(null);if(openingVideo!=null)openingVideo.stopPlayback();if(updates!=null)updates.close();if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web.destroy();super.onDestroy();}

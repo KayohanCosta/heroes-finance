@@ -11,7 +11,7 @@ android {
   }
  }
  buildTypes { release { signingConfig signingConfigs.release; minifyEnabled false } }
- defaultConfig { applicationId 'app.heroes.finance'; minSdk 26; targetSdk 35; versionCode 7; versionName '1.4.2' }
+ defaultConfig { applicationId 'app.heroes.finance'; minSdk 26; targetSdk 35; versionCode 8; versionName '1.4.3' }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 dependencies {
